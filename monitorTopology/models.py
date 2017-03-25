@@ -6,9 +6,9 @@ class Node(models.Model):
     name = models.CharField(max_length=500)
     ip = models.CharField(max_length=100, unique=True)
     type = models.CharField(max_length=100)
-    network = models.ForeignKey('Network', blank=True)
+    network = models.ForeignKey('Network')
     # node_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
-    related_sessions = models.ManyToManyField('Session')
+    related_sessions = models.ManyToManyField('Session', through="Hop", blank=True)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -20,19 +20,21 @@ class Node(models.Model):
 class ISP(models.Model):
     ASNumber = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=500, default="")
-    networks = models.ManyToManyField("Network", through="Network", blank=True)
+    networks = models.ManyToManyField("Network", blank=True, related_name="isp_nets")
 
     def __str__(self):
         return "AS " + str(self.ASNumber) + "(" + self.name + ")"
 
     # Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
+    isp = models.ForeignKey(ISP, related_name="net_isp")
     type = models.CharField(max_length=100)
     latitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
     longitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
     nodes = models.ManyToManyField(Node, blank=True, related_name='net_nodes')
     # network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
-    related_sessions = models.ManyToManyField('Session')
+    related_sessions = models.ManyToManyField('Session', through="Subnetwork", blank=True)
+    latencies = models.ManyToManyField("Latency", blank=True)
     city = models.CharField(max_length=100, default="")
     region = models.CharField(max_length=100, default="")
     country = models.CharField(max_length=100, default="")
@@ -43,18 +45,18 @@ class Network(models.Model):
             self.longitude) + ")"
 
     class Meta:
-        index_together = ["ASNumber", "latitude", "longitude"]
-        unique_together = ("ASNumber", "latitude", "longitude")
+        index_together = ["isp", "latitude", "longitude"]
+        unique_together = ("isp", "latitude", "longitude")
 
     def get_class_name(self):
         return "network"
 
 ## Session information
 class Session(models.Model):
-    src = models.ForeignKey(Node, related_name='src_node')
-    dst = models.ForeignKey(Node, related_name='dst_node')
-    route = models.ManyToManyField(Node, through='Hop')
-    sub_networks = models.ManyToManyField(Network, through='Subnetwork')
+    client = models.ForeignKey(Node, related_name='client_node')
+    server = models.ForeignKey(Node, related_name='server_node')
+    route = models.ManyToManyField(Node, through='Hop', blank=True)
+    sub_networks = models.ManyToManyField(Network, through='Subnetwork', blank=True)
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
@@ -64,8 +66,8 @@ class Session(models.Model):
         return "session"
 
     class Meta:
-        index_together = ["src", "dst"]
-        unique_together = ["src", "dst"]
+        index_together = ["client", "server"]
+        unique_together = ["client", "server"]
 
 # Define hop with its sequence on a client's route
 class Hop(models.Model):
@@ -90,7 +92,7 @@ class Edge(models.Model):
     src = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_source')
     dst = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_target')
     isIntra = models.BooleanField(default=False)
-    latencies = models.ManyToManyField("LinkLatency", through="LinkLatency")
+    latencies = models.ManyToManyField("Latency", blank=True)
 
     latest_check = models.DateTimeField(auto_now=True)
 
@@ -98,26 +100,28 @@ class Edge(models.Model):
         unique_together = ["src", "dst"]
 
     def __str__(self):
-        return str(self.src.name + "---" + self.dst.name)
-
+        return str(self.src.name + "<--->" + self.dst.name)
 
 class NetEdge(models.Model):
-    srcNet = models.ForeignKey(Network, related_name='network_source')
-    dstNet = models.ForeignKey(Network, related_name='network_target')
+    srcNet = models.ForeignKey(Network, related_name='net_src')
+    dstNet = models.ForeignKey(Network, related_name='net_dst')
     isIntra = models.BooleanField(default=False)
 
+    latest_check = models.DateTimeField(auto_now=True)
+    def __str__(self):
+        return str(self.srcNet) + "<--->" + str(self.dstNet)
+
+class PeeringEdge(models.Model):
+    srcISP= models.ForeignKey(ISP, related_name='isp_source')
+    dstISP = models.ForeignKey(ISP, related_name='isp_target')
+
     class Meta:
-        unique_together = ["srcNet", "dstNet"]
+        unique_together = ["srcISP", "dstISP"]
 
     def __str__(self):
-        return str(self.srcNet) + "---" + str(self.dstNet)
+        return str(self.srcISP) + "<--->" + str(self.dstISP)
 
-class LinkLatency(models.Model):
-    link = models.ForeignKey(Edge)
-    latency = models.DecimalField()
-    timestamp = models.DateTimeField()
-
-class AgentLatency(models.Model):
-    agent = models.ForeignKey(Node)
-    latency = models.DecimalField()
+class Latency(models.Model):
+    agent = models.ForeignKey(Node, default=None, null=True)
+    latency = models.DecimalField(decimal_places=4, max_digits=10)
     timestamp = models.DateTimeField()

@@ -1,0 +1,31 @@
+<h2>Show all available sessions</h2>
+{% if sessions %}
+    <form method="get">
+    <table style="width:100%">
+        <tr>
+            <td>Checkbox</td>
+            <td>Session ID</td>
+            <td>Client</td>
+            <td>Server</td>
+            <td>Route Length</td>
+            <td># of subnetworks</td>
+            <td>Latest Check</td>
+        </tr>
+        {% for session in sessions.all %}
+        <tr>
+            <td><input type="checkbox" name="id" value="{{ session.id }}"></td>
+            <td><a href="/get_session?id={{ session.id }}"> {{ session.id }} </a></td>
+            <td> {{ session.client.name }} </td>
+            <td> {{ session.server.name }} </td>
+            <td> {{ session.route.count }} </td>
+            <td> {{ session.sub_networks.count }} </td>
+            <td>{{ session.latest_check }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <input type="submit" value="Get network graph" onclick="javascript: form.action='/get_net_graph';"/>
+    <input type="submit" value="Get router graph" onclick="javascript: form.action='/get_router_graph';"/>
+    </form>
+{% else %}
+    <p>No sessions monitored by the agent.</p>
+{% endif %}
