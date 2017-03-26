@@ -113,6 +113,10 @@ class NetEdge(models.Model):
     isIntra = models.BooleanField(default=False)
 
     latest_check = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ["srcNet", "dstNet"]
+
     def __str__(self):
         return str(self.srcNet) + "<--->" + str(self.dstNet)
 
