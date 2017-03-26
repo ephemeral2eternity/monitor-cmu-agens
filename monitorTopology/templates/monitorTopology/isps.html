@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All ISPs</title>
+</head>
+<body>
+<h1>Show all ISPs monitored</h1>
+<table style="width:100%">
+    <tr>
+        <td>ID (Edit)</td>
+        <td>ISP Name</td>
+        <td>ISP AS #</td>
+        <td># of networks in different locations</td>
+    </tr>
+    {% for isp in isps %}
+    <tr>
+        <td> {{ isp.name }} </td>
+        <td> <a href="/get_isp?as={{ isp.ASNumber }}">AS {{ isp.ASNumber }} </a></td>
+        <td> {{ isp.networks.count }}</td>
+        <td> {{ isp.get_size }} </td>
+    </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

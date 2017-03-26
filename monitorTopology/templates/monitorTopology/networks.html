@@ -1,0 +1,21 @@
+{% if networks %}
+<table style="width:100%">
+    <tr>
+        <td>ID (Edit)</td>
+        <td>Name</td>
+        <td>AS</td>
+        <td>Location, City, Region, Country</td>
+        <td>Latest Check</td>
+    </tr>
+    {% for network in networks %}
+        <tr>
+        <td><a href="/get_network?id={{ network.id }}"> {{ network.id }} </a></td>
+        <td> {{ network.isp.name }} </td>
+        <td> AS {{ network.isp.ASNumber }} </td>
+        <td> ( {{ network.latitude }} , {{ network.longitude }} ), ({{ network.city }}, {{ network.region }}, {{ network.country }})</td>
+        <td>{{ network.latest_check }}</td>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No networks' info are available.</p>
+{% endif %}

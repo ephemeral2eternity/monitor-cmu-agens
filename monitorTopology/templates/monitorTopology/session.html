@@ -61,7 +61,6 @@
             <td>Network ID</td>
             <td>Network Name</td>
             <td>Network AS #</td>
-            <td>Network Type</td>
             <td>Network Location</td>
             <td>Network City, Region, Country</td>
         </tr>
@@ -71,7 +70,6 @@
                 <td><a href="/get_network?id={{ subnet.network.id }}"> Network {{ subnet.network.id}} </a></td>
                 <td> {{ subnet.network.isp.name }} </td>
                 <td> {{ subnet.network.isp.ASNumber }} </td>
-                <td> {{ subnet.network.type }} </td>
                 <td> ({{ subnet.network.latitude }}, {{ subnet.network.longitude }}) </td>
                 <td> ({{ subnet.network.city }}, {{ subnet.network.region }}, {{ subnet.network.country }}) </td>
             </tr>

@@ -10,7 +10,7 @@ from django.db import transaction
 #                 or pl_agent, which is a probing agent in PlanetLab
 #                 or azure_agent, which is a probing agent in Azure
 #   @return: the node object in Node model
-def add_node(node_ip, nodeTyp="router"):
+def add_node(node_ip, nodeTyp="router", nodeName=None):
     try:
         node = Node.objects.get(ip=node_ip)
     except:
@@ -28,7 +28,10 @@ def add_node(node_ip, nodeTyp="router"):
             node_network = Network(isp=node_isp, latitude=node_info['latitude'], longitude=node_info['longitude'])
             node_network.save()
 
-        node = Node(ip=node_ip, name=node_info['name'], type=nodeTyp, network=node_network)
+        if nodeName:
+            node = Node(ip=node_ip, name=nodeName, type=nodeTyp, network=node_network)
+        else:
+            node = Node(ip=node_ip, name=node_info['name'], type=nodeTyp, network=node_network)
         node.save()
 
         if node not in node_network.nodes.all():
@@ -84,7 +87,7 @@ def update_net_edge(srcNet, dstNet, isIntra):
         net_edge.save()
 
 
-### @function add_route(route)
+### @function update_edge(src_node, dst_node, latency)
 #   @params:
 #       route : a json object of a traceroute session info
 #               The key denotes the hop number. 0 denotes the client and the maximum key denotes the server
@@ -152,27 +155,35 @@ def add_subnet(node_net, net_id, session):
 #               The key denotes the hop number. 0 denotes the client and the maximum key denotes the server
 #               Each value object contains info {"ip": hop_ip_x.x.x.x, "name": hop_hostname, "time": time_to_get_to_the_hop}
 def add_route(route):
-    sub_net_id = 0
-    hop_ids = sorted(route.keys())
+    hop_ids = sorted(route.keys(), key=int)
     client = route[hop_ids[0]]
-    client_node = add_node(client["ip"], "client")
     server = route[hop_ids[-1]]
-    server_node = add_node(server["ip"], "server")
+    if (client['ip'] == "*") or (server["ip"] == "*"):
+        return
+
+    client_node = add_node(client["ip"], "client", client["name"])
+    server_node = add_node(server["ip"], "server", server["name"])
 
     session = add_session(client_node, server_node)
-    add_hop(client_node, hop_ids[0], session)
+    sub_net_id = 0
+    true_hop_id = int(hop_ids[0])
+    add_hop(client_node, true_hop_id, session)
     add_subnet(client_node.network, sub_net_id, session)
 
     pre_node = client_node
     pre_time = client["time"]
     for hop_id in hop_ids[1:-1]:
         cur_hop = route[hop_id]
+        if cur_hop["ip"] == "*":
+            continue
+
         cur_node = add_node(cur_hop["ip"])
         cur_time = cur_hop["time"]
 
         latency = cur_time - pre_time
         update_edge(pre_node, cur_node, latency)
-        add_hop(cur_node, hop_id, session)
+        true_hop_id += 1
+        add_hop(cur_node, true_hop_id, session)
         if cur_node.network.id != pre_node.network.id:
             sub_net_id += 1
             add_subnet(cur_node.network, sub_net_id, session)
@@ -182,7 +193,8 @@ def add_route(route):
 
     latency = server["time"] - pre_time
     update_edge(pre_node, server_node, latency)
-    add_hop(server_node, hop_ids[-1], session)
+    true_hop_id += 1
+    add_hop(server_node, true_hop_id, session)
 
     if server_node.network.id != pre_node.network.id:
         sub_net_id += 1

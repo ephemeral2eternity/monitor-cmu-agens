@@ -15,9 +15,10 @@ def get_router_graph_json(session_ids):
         session = Session.objects.get(id=session_id)
 
         for node in session.route.all().distinct():
-            nodes.append(node.id)
-            graph["nodes"].append(
-            {"name": node.name, "type": node.type, "id": node.id, "ip": node.ip})
+            if node.id not in nodes:
+                nodes.append(node.id)
+                graph["nodes"].append(
+                {"name": node.name, "type": node.type, "id": node.id, "ip": node.ip})
 
     edges = Edge.objects.filter(src_id__in=nodes, dst_id__in=nodes)
     for edge in edges.all():
@@ -43,8 +44,9 @@ def get_network_graph_json(session_ids):
         session = Session.objects.get(id=session_id)
 
         for net in session.sub_networks.all().distinct():
-            net_nodes.append(net.id)
-            graph["nodes"].append({"name": net.isp.name, "type": "network", "id": net.id})
+            if net.id not in net_nodes:
+                net_nodes.append(net.id)
+                graph["nodes"].append({"name": net.isp.name, "type": "network", "id": net.id})
 
     edges = NetEdge.objects.filter(srcNet_id__in=net_nodes, dstNet_id__in=net_nodes)
     for edge in edges.all():

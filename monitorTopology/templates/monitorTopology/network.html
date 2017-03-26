@@ -1,0 +1,101 @@
+<head>
+    <title>Network | Basic usage</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script src="/static/draw_networks.js"></script>
+
+    <style type="text/css">
+        #wrap {
+            width:100%;
+            margin:0 auto;
+            height: 400px;
+        }
+        #text {
+           float:left;
+           width:28%;
+        }
+        #network {
+            float:right;
+            width: 70%;
+            height: 400px;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body onload="draw()">
+<div id="wrap">
+    <div id="text">
+        <h1>Details on network {{ network.id }}</h1>
+        {% if network %}
+        <ul>
+            <li>Network ID: {{ network.id }}</li>
+            <li><a href="/get_isp?as={{ network.isp.ASNumber }}">ISP Details</a>
+                <ul>
+                    <li>ISP: {{ network.isp.name }}</li>
+                    <li>AS #: {{ network.isp.ASNumber }}</li>
+                </ul>
+            </li>
+            <li>Network location: ({{ network.latitude }}, {{ network.longitude }})</li>
+            <li>City: {{ network.city }}</li>
+            <li>Region: {{ network.region }}</li>
+            <li>Country: {{ network.country }}</li>
+        </ul>
+        {% else %}
+            <p>No network information denoted by {{ networkID }}.</p>
+        {% endif %}
+    </div>
+    <div id="network"></div>
+</div>
+<hr>
+<div>
+    <h2>Show nodes in the network</h2>
+    <table style="width:100%">
+        <tr>
+            <td>Name</td>
+            <td>IP</td>
+            <td>Type</td>
+            <td>Node Network</td>
+            <td>Latest Check</td>
+        </tr>
+        {% for node in network.nodes.all %}
+        <tr>
+            <td> {{ node.name }} </td>
+            <td> {{ node.ip }} </td>
+            <td> {{ node.type }} </td>
+            <td> {{ node.network_id }} </td>
+            <td> {{ node.latest_check }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+<hr>
+{% if edges %}
+<div>
+    <h2>Show edges in the network</h2>
+    <table style="width:100%">
+        <tr>
+            <td>Source Node</td>
+            <td>Source Node Network</td>
+            <td>Target Node</td>
+            <td>Target Node Network</td>
+        </tr>
+        {% for edge in edges.all %}
+        <tr>
+            <td> {{ edge.src.name }} </td>
+            <td> {{ edge.src.network_id }} </td>
+            <td> {{ edge.dst.name }} </td>
+            <td> {{ edge.dst.network_id }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+{% endif %}
+<hr>
+<script type="text/javascript">
+    function draw(){
+        var network_id = {{ network.id|safe }};
+        drawNetwork(network_id);
+    }
+</script>
+</body>

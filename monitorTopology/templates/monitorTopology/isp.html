@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ISP</title>
+</head>
+<body>
+<h1>Show details for ISP: {{ isp.name }}</h1>
+<h2>AS #: {{ isp.ASNumber }}</h2>
+<h2>Cover networks at following locations</h2>
+<table style="width:100%">
+    <tr>
+        <td>ID (Edit)</td>
+        <td>Name</td>
+        <td>AS</td>
+        <td>Location, City, Region, Country</td>
+        <td>Size of the network</td>
+        <td>Latest Check</td>
+    </tr>
+    {% for network in isp.networks.all %}
+        <tr>
+        <td><a href="/get_network?id={{ network.id }}"> {{ network.id }} </a></td>
+        <td> {{ network.isp.name }} </td>
+        <td> AS {{ network.isp.ASNumber }} </td>
+        <td> ( {{ network.latitude }} , {{ network.longitude }} ), ({{ network.city }}, {{ network.region }}, {{ network.country }})</td>
+        <td> {{ network.nodes.count }} </td>
+        <td>{{ network.latest_check }}</td>
+    {% endfor %}
+</table>
+<h2>Directly peering with following ISPs</h2>
+<table style="width:100%">
+    <tr>
+        <td>ISP Name</td>
+        <td>ISP AS #</td>
+        <td># of networks in different locations</td>
+        <td># of ips discovered</td>
+    </tr>
+    {% for peer_isp in peers %}
+        <tr>
+            <td> {{ peer_isp.name }} </td>
+            <td> <a href="/get_isp?as={{ peer_isp.ASNumber }}">AS {{ peer_isp.ASNumber }} </a></td>
+            <td> {{ peer_isp.networks.count }}</td>
+            <td> {{ peer_isp.get_size }} </td>
+        </tr>
+    {% endfor %}
+</table>
+</body>
+</html>

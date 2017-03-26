@@ -25,10 +25,15 @@ class ISP(models.Model):
     def __str__(self):
         return "AS " + str(self.ASNumber) + "(" + self.name + ")"
 
+    def get_size(self):
+        isp_size = 0
+        for network in self.networks.all().distinct():
+            isp_size += network.nodes.all().distinct().count()
+        return isp_size
+
     # Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
     isp = models.ForeignKey(ISP, related_name="net_isp")
-    type = models.CharField(max_length=100)
     latitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
     longitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
     nodes = models.ManyToManyField(Node, blank=True, related_name='net_nodes')
@@ -41,7 +46,7 @@ class Network(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.type + ", AS " + str(self.ASNumber) + ", (" + str(self.latitude) + ", " + str(
+        return self.type + ", AS " + str(self.isp.ASNumber) + ", (" + str(self.latitude) + ", " + str(
             self.longitude) + ")"
 
     class Meta:

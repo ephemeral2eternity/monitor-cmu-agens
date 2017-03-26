@@ -1,0 +1,44 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>QoE Time Curve</title>
+
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+        }
+    </style>
+
+    <style type="text/css">
+        #timecurve {
+            width: 100%;
+            border: 1px solid lightgray;
+        }
+    </style>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script src="/static/draw_updates.js"></script>
+</head>
+<body>
+{% if node %}
+    <ul>
+        <li>Node Name: {{ node.name }}</li>
+        <li>Node IP: {{ node.ip }}</li>
+        <li>Node type: {{ node.type }}</li>
+        <li>Node Network: <a href="/get_network?id={{ node.network.id }}"> {{ node.network.id }} </a></li>
+        <li>Sessions go-through:
+            <ul>
+            {% for session in node.related_sessions.all %}
+                <li><a href="/get_session?id={{ session.id }}"> {{ session }} </a></li>
+            {% endfor %}
+            </ul>
+        </li>
+        <li>Updated timestamp: {{ node.latest_check }}</li>
+    </ul>
+{% else %}
+    <p>No node ip denoted.</p>
+{% endif %}
+</body>
+</html>

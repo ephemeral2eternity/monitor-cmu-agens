@@ -17,6 +17,19 @@ def showSessions(request):
     template = loader.get_template('monitorTopology/sessions.html')
     return HttpResponse(template.render({'sessions': sessions}, request))
 
+# @description Show all networks in the database
+def showNetworks(request):
+    networks = Network.objects.all()
+    template = loader.get_template('monitorTopology/networks.html')
+    return HttpResponse(template.render({'networks': networks}, request))
+
+# @description Show all ISPs discovered
+def showISPs(request):
+    isps = ISP.objects.all()
+    peerings = PeeringEdge.objects.all()
+    template = loader.get_template('monitorTopology/isps.html')
+    return  HttpResponse(template.render({'isps':isps, 'peerings':peerings}, request))
+
 # @description Get the details of one session denoted by the session id
 # @called by: showSessions.
 def getSession(request):
@@ -32,6 +45,92 @@ def getSession(request):
         return HttpResponse(template.render({'session': session, 'hops': hops, 'subnets':subnets}, request))
     else:
         return showSessions(request)
+
+def getISP(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('as' in request_dict.keys()):
+        as_num = int(request_dict['as'][0])
+        isp = ISP.objects.get(ASNumber=as_num)
+        peerings = PeeringEdge.objects.filter(Q(srcISP__ASNumber=isp.ASNumber)|Q(dstISP__ASNumber=isp.ASNumber))
+        peers = []
+        for pEdge in peerings.all():
+            if pEdge.srcISP.ASNumber == isp.ASNumber:
+                peers.append(pEdge.dstISP)
+            else:
+                peers.append(pEdge.srcISP)
+        template = loader.get_template('monitorTopology/isp.html')
+        return HttpResponse(template.render({'isp': isp, 'peers': peers}, request))
+    else:
+        return HttpResponse("Please denote the AS # in http://monitor/get_isp?as=as_num!")
+
+# @description Get the details of one node by denoting its id in the database
+def getNode(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        node_id = int(request_dict['id'][0])
+        node = Node.objects.get(id=node_id)
+        template = loader.get_template('monitorTopology/node.html')
+        return HttpResponse(template.render({'node': node}, request))
+    else:
+        return HttpResponse("Please denote the node id in : http://monitor.cmu-agens.com/get_node?id=node_id")
+
+# @description Get the details of one network by denoting its id in the database
+def getNetwork(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        network_id = int(request_dict['id'][0])
+        network = Network.objects.get(id=network_id)
+        edges = Edge.objects.filter(Q(src__in=network.nodes.all())|Q(dst__in=network.nodes.all()))
+        template = loader.get_template('monitorTopology/network.html')
+        return HttpResponse(template.render({'network': network, 'edges':edges}, request))
+    else:
+        return showNetworks(request)
+
+# @description Get the router topology of a network denoted by the id
+def getNetworkJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        network_id = int(request_dict['id'][0])
+        network = Network.objects.get(id=network_id)
+        edges = Edge.objects.filter(Q(src__in=network.nodes.all())|Q(dst__in=network.nodes.all()))
+
+        all_nodes = []
+        node_list = []
+        for node in network.nodes.all().distinct():
+            all_nodes.append(node.ip)
+            node_list.append({"name":node.name, "network_id":node.network_id, "ip":node.ip, "type": "in", "id":node.id})
+
+        edge_list = []
+        for edge in edges.all():
+            if edge.src not in network.nodes.all().distinct():
+                if edge.src.ip not in all_nodes:
+                    all_nodes.append(edge.src.ip)
+                    node_list.append({"name": edge.src.name, "network_id": edge.src.network_id, "ip": edge.src.ip, "type": "out", "id": edge.src.id})
+            src_id = all_nodes.index(edge.src.ip)
+
+            if edge.dst not in network.nodes.all():
+                if edge.dst.ip not in all_nodes:
+                    all_nodes.append(edge.dst.ip)
+                    node_list.append({"name": edge.dst.name, "network_id": edge.dst.network_id, "ip": edge.dst.ip, "type": "out", "id": edge.dst.id})
+            dst_id = all_nodes.index(edge.dst.ip)
+
+            edge_list.append({"source":src_id, "target":dst_id})
+
+        graph = {}
+        graph["nodes"] = node_list
+        graph["edges"] = edge_list
+
+        return JsonResponse(graph)
+    else:
+        return JsonResponse({})
 
 @csrf_exempt
 def getRouterGraphJson(request):
