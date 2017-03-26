@@ -7,7 +7,7 @@ function drawISPMap(ids) {
     for (var i=0; i<idsNum - 1; i++) {
         url = url + "as=" + ids[i] + "&";
     }
-    url = url + "id=" + ids[idsNum - 1];
+    url = url + "as=" + ids[idsNum - 1];
     console.log(url);
 
     var H = Highcharts,
@@ -83,7 +83,7 @@ function drawISPMap(ids) {
             },
 
             legend: {
-                enabled: true
+                enabled: false
             },
 
             mapNavigation: {
