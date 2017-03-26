@@ -25,7 +25,7 @@ SECRET_KEY = 'b=)!x)_92nb12o=ci($bj0st=q(@fyj3!#14(#q-jgb_89)of+'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["superman.andrew.cmu.edu", "monitor.cmu-agens.com"]
+ALLOWED_HOSTS = ["0.0.0.0", "superman.andrew.cmu.edu", "monitor.cmu-agens.com"]
 
 
 # Application definition

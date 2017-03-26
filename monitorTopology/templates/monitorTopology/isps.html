@@ -6,15 +6,18 @@
 </head>
 <body>
 <h1>Show all ISPs monitored</h1>
+<form method="get">
 <table style="width:100%">
     <tr>
-        <td>ID (Edit)</td>
+        <td>ID</td>
         <td>ISP Name</td>
         <td>ISP AS #</td>
         <td># of networks in different locations</td>
+        <td>Size of the ISP</td>
     </tr>
     {% for isp in isps %}
     <tr>
+        <td><input type="checkbox" name="id" value="{{ isp.ASNumber }}"></td>
         <td> {{ isp.name }} </td>
         <td> <a href="/get_isp?as={{ isp.ASNumber }}">AS {{ isp.ASNumber }} </a></td>
         <td> {{ isp.networks.count }}</td>
@@ -22,5 +25,7 @@
     </tr>
     {% endfor %}
 </table>
+<input type="submit" value="Get ISP Graph" onclick="javascript: form.action='/get_isp_graph';"/>
+</form>
 </body>
 </html>
