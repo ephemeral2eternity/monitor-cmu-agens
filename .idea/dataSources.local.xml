@@ -8,8 +8,9 @@
       </database-info>
       <case-sensitivity plain-identifiers="mixed" quoted-identifiers="upper" />
       <user-name>root</user-name>
-      <user-password>dfdbdfd8dfcbdfc4dfc1</user-password>
+      <introspection-schemas>*:monitor_db</introspection-schemas>
       <resolve-scope>monitor_db:</resolve-scope>
+      <unqualified-resolve-schemas>monitor_db:</unqualified-resolve-schemas>
     </data-source>
   </component>
 </project>
