@@ -202,6 +202,39 @@ def getRouterGraph(request):
     return HttpResponse(template.render({'ids': ids_json}, request))
 
 
+def getISPNetJson(request):
+    url = request.get_full_path()
+    isp_nets = {}
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('as' in request_dict.keys()):
+            as_nums = request_dict['as']
+            for asn in as_nums:
+                isp = ISP.objects.get(ASNumber=asn)
+                isp_nets[isp.name] = []
+                for net in isp.networks.distinct():
+                    isp_nets[isp.name].append({"lat": net.latitude, "lon": net.longitude, "netsize": net.nodes.count(), "asn": "AS " + str(isp.ASNumber)})
+    return JsonResponse(isp_nets, safe=False)
+
+
+def getISPGraph(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        ids = request_dict['id']
+        ids_json = json.dumps(ids)
+    else:
+        isps = ISP.objects.all().distinct()
+        ids = []
+        for isp in isps:
+            ids.append(isp.ASNumber)
+        ids_json = json.dumps(ids)
+    template = loader.get_template("monitorTopology/ispGraph.html")
+    return HttpResponse(template.render({'ids': ids_json}, request))
+
+
 # @description Add the hops in the Session's route and extract the ISPs, the networks, the routers, the client
 # and the server node infos.
 @csrf_exempt
