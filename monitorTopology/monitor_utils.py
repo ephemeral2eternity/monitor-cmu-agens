@@ -10,6 +10,7 @@ from django.db import transaction
 #                 or pl_agent, which is a probing agent in PlanetLab
 #                 or azure_agent, which is a probing agent in Azure
 #   @return: the node object in Node model
+@transaction.atomic
 def add_node(node_ip, nodeTyp="router", nodeName=None):
     try:
         node = Node.objects.get(ip=node_ip)
@@ -22,11 +23,17 @@ def add_node(node_ip, nodeTyp="router", nodeName=None):
             node_isp = ISP(ASNumber=node_info["AS"], name=node_info["ISP"])
             node_isp.save()
 
+        latitude = float(node_info['latitude'])
+        latitude_str = '{0:.6f}'.format(latitude)
+        longitude = float(node_info['longitude'])
+        longitude_str = '{0:.6f}'.format(longitude)
+        # print("AS " + str(node_isp.ASNumber) + "(" + latitude_str + "," + longitude_str + ")" )
         try:
-            node_network = Network.objects.get(isp=node_isp, latitude=node_info['latitude'], longitude=node_info['longitude'])
+            node_network = Network.objects.get(isp=node_isp, latitude=latitude_str, longitude=longitude_str)
         except:
-            node_network = Network(isp=node_isp, latitude=node_info['latitude'], longitude=node_info['longitude'])
+            node_network = Network(isp=node_isp, latitude=latitude_str, longitude=longitude_str)
             node_network.save()
+
 
         if nodeName:
             node = Node(ip=node_ip, name=nodeName, type=nodeTyp, network=node_network)
@@ -49,6 +56,7 @@ def add_node(node_ip, nodeTyp="router", nodeName=None):
 #   @params:
 #       src_isp : the source ISP in the peering link
 #       dst_isp : the destination ISP in the peering link
+@transaction.atomic
 def update_peering(src_isp, dst_isp):
     if src_isp.ASNumber == dst_isp.ASNumber:
         return
@@ -71,6 +79,7 @@ def update_peering(src_isp, dst_isp):
 #       srcNet : the source network of the link
 #       dstNet : the destination network of the link
 #       isIntra : denotes if the link is an intra ISP link
+@transaction.atomic
 def update_net_edge(srcNet, dstNet, isIntra):
     if srcNet.id == dstNet.id:
         return

@@ -7,6 +7,7 @@ urlpatterns = [
     url(r'^show_sessions', views.showSessions, name='showSessions'),
     url(r'^show_networks', views.showNetworks, name='showNetworks'),
     url(r'^show_isps', views.showISPs, name='showISPs'),
+    url(r'^show_nodes', views.showNodes, name='showNodes'),
     url(r'^get_isp', views.getISP, name='getISP'),
     url(r'^get_session', views.getSession, name='getSession'),
     url(r'^get_node', views.getNode, name='getNode'),

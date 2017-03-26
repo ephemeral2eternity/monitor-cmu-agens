@@ -48,7 +48,7 @@ def get_network_graph_json(session_ids):
                 net_nodes.append(net.id)
                 graph["nodes"].append({"name": net.isp.name, "type": "network", "id": net.id})
 
-    edges = NetEdge.objects.filter(srcNet_id__in=net_nodes, dstNet_id__in=net_nodes)
+    edges = NetEdge.objects.filter(srcNet_id__in=net_nodes, dstNet_id__in=net_nodes).all().distinct()
     for edge in edges.all():
         srcID = net_nodes.index(edge.srcNet.id)
         dstID = net_nodes.index(edge.dstNet.id)

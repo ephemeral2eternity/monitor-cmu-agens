@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>All Nodes</title>
+</head>
+<body>
+<h2>Show all available nodes</h2>
+{% if nodes %}
+<table style="width:100%">
+    <tr>
+        <td>ID</td>
+        <td>Name</td>
+        <td>IP</td>
+        <td>Type</td>
+        <td>Network</td>
+        <td>Latest Check</td>
+    </tr>
+    {% for node in nodes %}
+    <tr>
+        <td><a href="/get_node?id={{ node.id }}"> {{ node.id }} </a></td>
+        <td> {{ node.name }} </td>
+        <td> {{ node.ip }} </td>
+        <td> {{ node.type }} </td>
+        <td><a href="/get_network?id={{ node.network_id }}"> Click to show its network {{ node.network_id }} </a></td>
+        <td> {{ node.latest_check }} </td>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No Nodes' obtained in the agent.</p>
+{% endif %}
+</body>
+</html>
