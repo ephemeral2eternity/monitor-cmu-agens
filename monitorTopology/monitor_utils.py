@@ -183,7 +183,7 @@ def add_route(route):
     pre_time = client["time"]
     for hop_id in hop_ids[1:-1]:
         cur_hop = route[hop_id]
-        if cur_hop["ip"] == "*":
+        if (cur_hop["ip"] == "*") or (is_reserved(cur_hop["ip"])):
             continue
 
         cur_node = add_node(cur_hop["ip"])
