@@ -211,10 +211,10 @@ def addRoute(request):
         # print(request.body)
         start_time = time.time()
         route_info = json.loads(request.body.decode("utf-8"))
-        #try:
-        add_route(route_info)
-        #except:
-        #    print("Faiiled to add route from client " + route_info["0"]["name"])
+        try:
+            add_route(route_info)
+        except:
+            print("Faiiled to add route from client " + route_info["0"]["name"])
         time_elapsed = time.time() - start_time
         print("The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
         return HttpResponse("Add successfully!")
