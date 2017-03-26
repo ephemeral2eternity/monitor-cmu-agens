@@ -43,8 +43,8 @@ function drawISPMap(ids) {
                 },
                 name: ispName,
                 data: cur_data,
-                minSize: 10,
-                maxSize: '12%',
+                minSize: 5,
+                maxSize: 50,
                 enableMouseTracking: true,
                 color: H.getOptions().colors[cor_id],
                 tooltip: {
