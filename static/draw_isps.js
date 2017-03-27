@@ -83,7 +83,7 @@ function drawISPMap(ids) {
             },
 
             legend: {
-                enabled: false
+                enabled: true
             },
 
             mapNavigation: {
