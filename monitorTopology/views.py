@@ -207,6 +207,7 @@ def getISPPeersJson(request):
     isp_nets = {}
     peering_json = {}
     all_isps_related = []
+    draw_all = False
     if '?' in url:
         params = url.split('?')[1]
         request_dict = urllib.parse.parse_qs(params)
@@ -228,8 +229,6 @@ def getISPPeersJson(request):
                 dst_isp_name = link.dstISP.name + "(AS " + str(link.dstISP.ASNumber) + ")"
                 if dst_isp_name not in all_isps_related:
                     all_isps_related.append(dst_isp_name)
-
-            draw_all = False
         else:
             draw_all = True
     else:
@@ -239,7 +238,6 @@ def getISPPeersJson(request):
         all_isps = ISP.objects.all()
         for cur_as in all_isps:
             all_isps_related.append(cur_as.name + "(AS " + str(cur_as.ASNumber) + ")")
-
         all_peering_links = PeeringEdge.objects.all().distinct()
 
     all_isps_num = len(all_isps_related)
@@ -251,7 +249,7 @@ def getISPPeersJson(request):
         dst_idx = all_isps_related.index(dst_isp_name)
         peering_mat[src_idx][dst_idx] = 1
 
-        peering_json["pacageNames"] = all_isps_related
+        peering_json["packageNames"] = all_isps_related
         peering_json["matrix"] = peering_mat
 
     return JsonResponse(peering_json, safe=False)
@@ -287,6 +285,23 @@ def getISPGraph(request):
             ids.append(isp.ASNumber)
         ids_json = json.dumps(ids)
     template = loader.get_template("monitorTopology/ispGraph.html")
+    return HttpResponse(template.render({'ids': ids_json}, request))
+
+
+def getISPPeering(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        ids = request_dict['id']
+        ids_json = json.dumps(ids)
+    else:
+        isps = ISP.objects.all().distinct()
+        ids = []
+        for isp in isps:
+            ids.append(isp.ASNumber)
+        ids_json = json.dumps(ids)
+    template = loader.get_template("monitorTopology/ispPeeringGraph.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
 
 

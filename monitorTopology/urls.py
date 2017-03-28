@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^show_networks', views.showNetworks, name='showNetworks'),
     url(r'^get_isp_nets_json', views.getISPNetJson, name='getISPNetJson'),
     url(r'^get_isp_peers_json', views.getISPPeersJson, name='getISPPeersJson'),
+    url(r'^get_isp_peering', views.getISPPeering, name='getISPPeering'),
     url(r'^get_isp_graph', views.getISPGraph, name='getISPGraph'),
     url(r'^show_isps', views.showISPs, name='showISPs'),
     url(r'^show_nodes', views.showNodes, name='showNodes'),

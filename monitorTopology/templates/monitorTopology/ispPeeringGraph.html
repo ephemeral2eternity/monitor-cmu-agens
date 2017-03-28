@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Show Selected ISPs</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="/static/d3.min.js"></script>
+    <script src="/static/composerBuilder.js"></script>
+    <script src="/static/d3.dependencyWheel.js"></script>
+    <script src="/static/draw_peering.js"></script>
+
+    <style type="text/css">
+        #ispMap {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .dependencyWheel {
+          font: 10px sans-serif;
+        }
+    </style>
+</head>
+<body onload="draw()">
+{% load staticfiles %}
+<div id="ispPeering"></div>
+<script type="text/javascript">
+    function draw() {
+        var ids = {{ ids|safe }};
+        drawISPPeering(ids);
+    }
+</script>
+</body>
+</html>
