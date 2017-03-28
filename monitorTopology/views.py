@@ -11,6 +11,12 @@ from monitorTopology.monitor_utils import *
 from monitorTopology.data_utils import *
 
 # Create your views here.
+# Show detailed info of all clients connecting to this agent.
+def index(request):
+    template = loader.get_template('monitorTopology/index.html')
+    return HttpResponse(template.render({}, request))
+
+
 # @description Show all sessions in the database
 def showSessions(request):
     sessions = Session.objects.all()
@@ -30,6 +36,7 @@ def showISPs(request):
     template = loader.get_template('monitorTopology/isps.html')
     return  HttpResponse(template.render({'isps':isps, 'peerings':peerings}, request))
 
+# @description Show all Nodes discovered
 def showNodes(request):
     nodes = Node.objects.all()
     template = loader.get_template('monitorTopology/nodes.html')
@@ -51,6 +58,7 @@ def getSession(request):
     else:
         return showSessions(request)
 
+# @description Show details of a given ISP denoted by its ASNumber (as=xxx)
 def getISP(request):
     url = request.get_full_path()
     params = url.split('?')[1]
@@ -70,7 +78,7 @@ def getISP(request):
     else:
         return HttpResponse("Please denote the AS # in http://monitor/get_isp?as=as_num!")
 
-# @description Get the details of one node by denoting its id in the database
+# @description Get the details of one node by denoting its id  in the database
 def getNode(request):
     url = request.get_full_path()
     params = url.split('?')[1]
@@ -97,7 +105,7 @@ def getNetwork(request):
     else:
         return showNetworks(request)
 
-# @description Get the router topology of a network denoted by the id
+# @description Get the network (unique AS # + locations) level topology of a network denoted by the id
 def getNetworkJson(request):
     url = request.get_full_path()
     params = url.split('?')[1]
@@ -138,6 +146,7 @@ def getNetworkJson(request):
         return JsonResponse({})
 
 @csrf_exempt
+# @description Get the router level topology json data of all sessions denoted by their ids
 def getRouterGraphJson(request):
     url = request.get_full_path()
     if '?' in url:
@@ -154,6 +163,7 @@ def getRouterGraphJson(request):
     return JsonResponse(graph, safe=False)
 
 @csrf_exempt
+# @description Get the network level topology json data of all sessions denoted by their ids
 def getNetworkGraphJson(request):
     url = request.get_full_path()
     if '?' in url:
@@ -169,6 +179,7 @@ def getNetworkGraphJson(request):
     graph = get_network_graph_json(session_ids)
     return JsonResponse(graph, safe=False)
 
+# @description Get the network level topology of all sessions denoted by their ids
 def getNetworkGraph(request):
     url = request.get_full_path()
     if '?' in url:
@@ -185,6 +196,7 @@ def getNetworkGraph(request):
     template = loader.get_template("monitorTopology/netGraph.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
 
+# @description Get the router level topology of all sessions denoted by their ids
 def getRouterGraph(request):
     url = request.get_full_path()
     if '?' in url:
@@ -201,34 +213,20 @@ def getRouterGraph(request):
     template = loader.get_template("monitorTopology/routerGraph.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
 
-
+# @description Get the peering links of all isps denoted by their as numbers.
 def getISPPeersJson(request):
     url = request.get_full_path()
     isp_nets = {}
     peering_json = {}
     all_isps_related = []
     draw_all = False
+    as_nums = []
     if '?' in url:
         params = url.split('?')[1]
         request_dict = urllib.parse.parse_qs(params)
         if ('as' in request_dict.keys()):
             as_nums = request_dict['as']
-            isps_to_draw = []
-            for asn in as_nums:
-                cur_as = ISP.objects.get(ASNumber=asn)
-                isps_to_draw.append(asn)
-                cur_isp_name = cur_as.name + "(AS " + str(cur_as.ASNumber) + ")"
-                all_isps_related.append(cur_isp_name)
-
-            all_peering_links = PeeringEdge.objects.filter(Q(srcISP__ASNumber__in=isps_to_draw)|Q(dstISP__ASNumber__in=isps_to_draw)).distinct()
-            for link in all_peering_links:
-                src_isp_name = link.srcISP.name + "(AS " + str(link.srcISP.ASNumber) + ")"
-                if src_isp_name not in all_isps_related:
-                    all_isps_related.append(all_isps_related)
-
-                dst_isp_name = link.dstISP.name + "(AS " + str(link.dstISP.ASNumber) + ")"
-                if dst_isp_name not in all_isps_related:
-                    all_isps_related.append(dst_isp_name)
+            draw_all = False
         else:
             draw_all = True
     else:
@@ -239,13 +237,33 @@ def getISPPeersJson(request):
         for cur_as in all_isps:
             all_isps_related.append(cur_as.name + "(AS " + str(cur_as.ASNumber) + ")")
         all_peering_links = PeeringEdge.objects.all().distinct()
+    else:
+        isps_to_draw = []
+        for asn in as_nums:
+            cur_as = ISP.objects.get(ASNumber=asn)
+            isps_to_draw.append(asn)
+            cur_isp_name = cur_as.name + "(AS " + str(cur_as.ASNumber) + ")"
+            all_isps_related.append(cur_isp_name)
+
+        all_peering_links = PeeringEdge.objects.filter(
+            Q(srcISP__ASNumber__in=isps_to_draw) | Q(dstISP__ASNumber__in=isps_to_draw)).distinct()
+
+        for link in all_peering_links:
+            src_isp_name = link.srcISP.name + "(AS " + str(link.srcISP.ASNumber) + ")"
+            dst_isp_name = link.dstISP.name + "(AS " + str(link.dstISP.ASNumber) + ")"
+
+            if src_isp_name not in all_isps_related:
+                all_isps_related.append(src_isp_name)
+
+            if dst_isp_name not in all_isps_related:
+                all_isps_related.append(dst_isp_name)
 
     all_isps_num = len(all_isps_related)
     peering_mat = [[0 for x in range(all_isps_num)] for y in range(all_isps_num)]
     for link in all_peering_links:
         src_isp_name = link.srcISP.name + "(AS " + str(link.srcISP.ASNumber) + ")"
-        src_idx = all_isps_related.index(src_isp_name)
         dst_isp_name = link.dstISP.name + "(AS " + str(link.dstISP.ASNumber) + ")"
+        src_idx = all_isps_related.index(src_isp_name)
         dst_idx = all_isps_related.index(dst_isp_name)
         peering_mat[src_idx][dst_idx] = 1
 
@@ -271,7 +289,7 @@ def getISPNetJson(request):
     return JsonResponse(isp_nets, safe=False)
 
 
-def getISPGraph(request):
+def getISPMap(request):
     url = request.get_full_path()
     if '?' in url:
         params = url.split('?')[1]

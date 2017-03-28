@@ -24,8 +24,8 @@ function drawISPPeering(ids) {
         console.log(data);
 
         var chart = d3.chart.dependencyWheel()
-            .width(1400)
-            .margin(300);
+            .width(1200)
+            .margin(250);
         d3.select('#ispPeering')
           .datum(data)
           .call(chart);
