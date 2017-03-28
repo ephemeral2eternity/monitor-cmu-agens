@@ -202,6 +202,61 @@ def getRouterGraph(request):
     return HttpResponse(template.render({'ids': ids_json}, request))
 
 
+def getISPPeersJson(request):
+    url = request.get_full_path()
+    isp_nets = {}
+    peering_json = {}
+    all_isps_related = []
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        if ('as' in request_dict.keys()):
+            as_nums = request_dict['as']
+            isps_to_draw = []
+            for asn in as_nums:
+                cur_as = ISP.objects.get(ASNumber=asn)
+                isps_to_draw.append(asn)
+                cur_isp_name = cur_as.name + "(AS " + str(cur_as.ASNumber) + ")"
+                all_isps_related.append(cur_isp_name)
+
+            all_peering_links = PeeringEdge.objects.filter(Q(srcISP__ASNumber__in=isps_to_draw)|Q(dstISP__ASNumber__in=isps_to_draw)).distinct()
+            for link in all_peering_links:
+                src_isp_name = link.srcISP.name + "(AS " + str(link.srcISP.ASNumber) + ")"
+                if src_isp_name not in all_isps_related:
+                    all_isps_related.append(all_isps_related)
+
+                dst_isp_name = link.dstISP.name + "(AS " + str(link.dstISP.ASNumber) + ")"
+                if dst_isp_name not in all_isps_related:
+                    all_isps_related.append(dst_isp_name)
+
+            draw_all = False
+        else:
+            draw_all = True
+    else:
+        draw_all = True
+
+    if draw_all:
+        all_isps = ISP.objects.all()
+        for cur_as in all_isps:
+            all_isps_related.append(cur_as.name + "(AS " + str(cur_as.ASNumber) + ")")
+
+        all_peering_links = PeeringEdge.objects.all().distinct()
+
+    all_isps_num = len(all_isps_related)
+    peering_mat = [[0 for x in range(all_isps_num)] for y in range(all_isps_num)]
+    for link in all_peering_links:
+        src_isp_name = link.srcISP.name + "(AS " + str(link.srcISP.ASNumber) + ")"
+        src_idx = all_isps_related.index(src_isp_name)
+        dst_isp_name = link.dstISP.name + "(AS " + str(link.dstISP.ASNumber) + ")"
+        dst_idx = all_isps_related.index(dst_isp_name)
+        peering_mat[src_idx][dst_idx] = 1
+
+        peering_json["pacageNames"] = all_isps_related
+        peering_json["matrix"] = peering_mat
+
+    return JsonResponse(peering_json, safe=False)
+
+
 def getISPNetJson(request):
     url = request.get_full_path()
     isp_nets = {}
