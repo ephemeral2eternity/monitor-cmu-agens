@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>QoE Time Curve</title>
+    <title>Node</title>
 
     <style type="text/css">
         body, html {
@@ -30,8 +30,8 @@
         <li>Node Network: <a href="/get_network?id={{ node.network.id }}"> {{ node.network.id }} </a></li>
         <li>Sessions go-through:
             <ul>
-            {% for session in node.related_sessions.all %}
-                <li><a href="/get_session?id={{ session.id }}"> {{ session }} </a></li>
+            {% for session in node.related_sessions.all.distinct %}
+                <li><a href="/get_session?id={{ session.id }}">Session {{ session.id }} : {{ session }} </a></li>
             {% endfor %}
             </ul>
         </li>

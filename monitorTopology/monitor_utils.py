@@ -11,7 +11,7 @@ from django.db import transaction
 #                 or azure_agent, which is a probing agent in Azure
 #   @return: the node object in Node model
 @transaction.atomic
-def add_node(node_ip, nodeTyp="router", nodeName=None):
+def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
     try:
         node = Node.objects.get(ip=node_ip)
     except:
@@ -21,7 +21,8 @@ def add_node(node_ip, nodeTyp="router", nodeName=None):
             node_isp = ISP.objects.get(ASNumber=node_info["AS"])
         except:
             node_isp = ISP(ASNumber=node_info["AS"], name=node_info["ISP"])
-            node_isp.save()
+        node_isp.type = netTyp
+        node_isp.save()
 
         latitude = float(node_info['latitude'])
         latitude_str = '{0:.6f}'.format(latitude)
@@ -50,6 +51,28 @@ def add_node(node_ip, nodeTyp="router", nodeName=None):
             node_isp.save()
 
     return node
+
+### @function add_private_node(pre_node, dst_isp)
+#   @descr: Add an "*" node in the network
+#   @params:
+#       pre_node : previous known node
+def add_private_node(pre_node, nodeTyp="router"):
+    try:
+        private_node = Node.objects.get(ip="*", name="*", type=nodeTyp, network=pre_node.network)
+    except:
+        cur_net = pre_node.network
+        private_node = Node(ip="*", name="*", type=nodeTyp, network=cur_net)
+        private_node.save()
+        if private_node not in cur_net.nodes.all():
+            cur_net.nodes.add(private_node)
+
+        # update the link between "*" node and the closest given node.
+        update_edge(pre_node, private_node, 500)
+
+    #if private_node not in pre_node.network.nodes.all():
+    #    pre_node.network.nodes.add(private_node)
+
+    return private_node
 
 ### @function update_peering(src_isp, dst_isp)
 #   @descr: Save the peering relationship in the database
@@ -170,13 +193,12 @@ def add_route(route):
     if (client['ip'] == "*") or (server["ip"] == "*"):
         return
 
-    client_node = add_node(client["ip"], "client", client["name"])
-    server_node = add_node(server["ip"], "server", server["name"])
+    client_node = add_node(client["ip"], "client", client["name"], "access")
+    server_node = add_node(server["ip"], "server", server["name"], "cloud")
 
     session = add_session(client_node, server_node)
     sub_net_id = 0
-    true_hop_id = int(hop_ids[0])
-    add_hop(client_node, true_hop_id, session)
+    add_hop(client_node, int(hop_ids[0]), session)
     add_subnet(client_node.network, sub_net_id, session)
 
     pre_node = client_node
@@ -184,6 +206,9 @@ def add_route(route):
     for hop_id in hop_ids[1:-1]:
         cur_hop = route[hop_id]
         if (cur_hop["ip"] == "*") or (is_reserved(cur_hop["ip"])):
+            cur_node = add_private_node(pre_node)
+            add_hop(cur_node, hop_id, session)
+            pre_node = cur_node
             continue
 
         cur_node = add_node(cur_hop["ip"])
@@ -191,8 +216,7 @@ def add_route(route):
 
         latency = cur_time - pre_time
         update_edge(pre_node, cur_node, latency)
-        true_hop_id += 1
-        add_hop(cur_node, true_hop_id, session)
+        add_hop(cur_node, hop_id, session)
         if cur_node.network.id != pre_node.network.id:
             sub_net_id += 1
             add_subnet(cur_node.network, sub_net_id, session)
@@ -202,8 +226,7 @@ def add_route(route):
 
     latency = server["time"] - pre_time
     update_edge(pre_node, server_node, latency)
-    true_hop_id += 1
-    add_hop(server_node, true_hop_id, session)
+    add_hop(server_node, int(hop_ids[-1]), session)
 
     if server_node.network.id != pre_node.network.id:
         sub_net_id += 1

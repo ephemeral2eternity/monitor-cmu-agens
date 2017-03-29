@@ -105,6 +105,24 @@ def getNetwork(request):
     else:
         return showNetworks(request)
 
+# @description Get the count of hops for each session going through a given network denoted by id.
+# @description Get network size data for all networks.
+def getNetSizeJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        network_id = int(request_dict['id'][0])
+        network = Network.objects.get(id=network_id)
+        netSizeJson = network.get_network_size()
+        return JsonResponse(netSizeJson)
+    else:
+        all_net_size = {}
+        networks = Network.objects.all()
+        for net in networks:
+            all_net_size[net.id] = net.get_network_size()
+        return JsonResponse(all_net_size)
+
 # @description Get the network (unique AS # + locations) level topology of a network denoted by the id
 def getNetworkJson(request):
     url = request.get_full_path()
@@ -213,7 +231,8 @@ def getRouterGraph(request):
     template = loader.get_template("monitorTopology/routerGraph.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
 
-# @description Get the peering links of all isps denoted by their as numbers.
+# @description Get the peering links in json file of all isps denoted by their as numbers.
+# Prepare the data for function: getISPPeering
 def getISPPeersJson(request):
     url = request.get_full_path()
     isp_nets = {}
@@ -272,7 +291,8 @@ def getISPPeersJson(request):
 
     return JsonResponse(peering_json, safe=False)
 
-
+# @description Get ISPs' networks info in json file. ISPs denoted by their AS numbers.
+# Prepare the data for function: getISPMap
 def getISPNetJson(request):
     url = request.get_full_path()
     isp_nets = {}
@@ -288,7 +308,7 @@ def getISPNetJson(request):
                     isp_nets[isp.name].append({"lat": net.latitude, "lon": net.longitude, "netsize": net.nodes.count(), "asn": "AS " + str(isp.ASNumber)})
     return JsonResponse(isp_nets, safe=False)
 
-
+# @description Draw isps' networks in different colors on a world map
 def getISPMap(request):
     url = request.get_full_path()
     if '?' in url:
@@ -305,7 +325,7 @@ def getISPMap(request):
     template = loader.get_template("monitorTopology/ispGraph.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
 
-
+# @description Draw isps' peering links in a chord graph
 def getISPPeering(request):
     url = request.get_full_path()
     if '?' in url:
@@ -322,6 +342,26 @@ def getISPPeering(request):
     template = loader.get_template("monitorTopology/ispPeeringGraph.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
 
+# @description: Update all Subnetworks' hop count for all sessions going through
+def updateNetSize(request):
+    subnets = Subnetwork.objects.all()
+    for subnet in subnets:
+        subnet.update_max_hop_cnt()
+
+    return showNetworks(request)
+
+# @description: Update the type of all ISPs
+def updateISPType(request):
+    sessions = Session.objects.all().distinct()
+    for session in sessions:
+        client_isp = session.client.network.isp
+        server_isp = session.server.network.isp
+        client_isp.type = "access"
+        client_isp.save()
+        server_isp.type = "cloud"
+        server_isp.save()
+
+    return showISPs(request)
 
 # @description Add the hops in the Session's route and extract the ISPs, the networks, the routers, the client
 # and the server node infos.
@@ -332,10 +372,10 @@ def addRoute(request):
         # print(request.body)
         start_time = time.time()
         route_info = json.loads(request.body.decode("utf-8"))
-        try:
-            add_route(route_info)
-        except:
-            print("Faiiled to add route from client " + route_info["0"]["name"])
+        #try:
+        add_route(route_info)
+        #except:
+        #    print("Faiiled to add route from client " + route_info["0"]["name"])
         time_elapsed = time.time() - start_time
         print("The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
         return HttpResponse("Add successfully!")

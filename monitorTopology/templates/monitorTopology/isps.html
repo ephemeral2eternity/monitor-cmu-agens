@@ -12,6 +12,7 @@
         <td>ID</td>
         <td>ISP Name</td>
         <td>ISP AS #</td>
+        <td>ISP Type</td>
         <td># of networks in different locations</td>
         <td>Size of the ISP</td>
     </tr>
@@ -20,6 +21,7 @@
         <td><input type="checkbox" name="id" value="{{ isp.ASNumber }}"></td>
         <td> {{ isp.name }} </td>
         <td> <a href="/get_isp?as={{ isp.ASNumber }}">AS {{ isp.ASNumber }} </a></td>
+        <td> {{ isp.type }} </td>
         <td> {{ isp.networks.count }}</td>
         <td> {{ isp.get_size }} </td>
     </tr>

@@ -13,11 +13,11 @@
         }
         #text {
            float:left;
-           width:28%;
+           width:30%;
         }
         #network {
             float:right;
-            width: 70%;
+            width: 68%;
             height: 400px;
             border: 1px solid lightgray;
         }
@@ -34,6 +34,9 @@
                 <ul>
                     <li>ISP: {{ network.isp.name }}</li>
                     <li>AS #: {{ network.isp.ASNumber }}</li>
+                    <li>Type: {{ network.isp.type }}</li>
+                    <li># of locations the ISP covers: {{ network.isp.networks.count }}</li>
+                    <li>The size of the ISP: {{ network.isp.get_size }}</li>
                 </ul>
             </li>
             <li>Network location: ({{ network.latitude }}, {{ network.longitude }})</li>
@@ -49,6 +52,10 @@
 </div>
 <hr>
 <div>
+    <h2>The sessions going through has hop spans as follows</h2>
+    <div id="hopSpan"></div>
+</div>
+<div>
     <h2>Show nodes in the network</h2>
     <table style="width:100%">
         <tr>
@@ -61,7 +68,7 @@
         {% for node in network.nodes.all %}
         <tr>
             <td> {{ node.name }} </td>
-            <td> {{ node.ip }} </td>
+            <td><a href="/get_node?id={{ node.id }}"> {{ node.ip }} </a></td>
             <td> {{ node.type }} </td>
             <td> {{ node.network_id }} </td>
             <td> {{ node.latest_check }} </td>
@@ -82,10 +89,10 @@
         </tr>
         {% for edge in edges.all %}
         <tr>
-            <td> {{ edge.src.name }} </td>
-            <td> {{ edge.src.network_id }} </td>
-            <td> {{ edge.dst.name }} </td>
-            <td> {{ edge.dst.network_id }} </td>
+            <td><a href="/get_node?id={{ edge.src.id }}"> {{ edge.src.name }} </a></td>
+            <td><a href="/get_network?id={{ edge.src.network.id }}"> {{ edge.src.network.id }} </a></td>
+            <td><a href="/get_node?id={{ edge.dst.id }}"> {{ edge.dst.name }} </a></td>
+            <td><a href="/get_network?id={{ edge.dst.network.id }}"> {{ edge.dst.network.id }} </a></td>
         </tr>
         {% endfor %}
     </table>
@@ -96,6 +103,19 @@
     function draw(){
         var network_id = {{ network.id|safe }};
         drawNetwork(network_id);
+        var net_size = {{ network.get_network_size|safe }};
+        var str_to_write = "<table>";
+        str_to_write += "<tr><td>The session id</td><td>The span of hops</td></tr>";
+        console.log(net_size);
+        for (var session_id in net_size )
+        {
+            console.log(session_id);
+            console.log(net_size[session_id]);
+            str_to_write += "<tr><td><a href=\"/get_session?id=" + session_id.toString() + "\">" + session_id.toString() + "</a><td>"+ net_size[session_id].toString() + "</td></tr>";
+        }
+        str_to_write += "</table>";
+        console.log(str_to_write);
+        document.getElementById("hopSpan").innerHTML = str_to_write;
     }
 </script>
 </body>

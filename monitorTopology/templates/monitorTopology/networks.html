@@ -5,6 +5,7 @@
         <td>Name</td>
         <td>AS</td>
         <td>Location, City, Region, Country</td>
+        <td>Maxium span of hops for sessions going-through</td>
         <td>Latest Check</td>
     </tr>
     {% for network in networks %}
@@ -13,6 +14,7 @@
         <td> {{ network.isp.name }} </td>
         <td> AS {{ network.isp.ASNumber }} </td>
         <td> ( {{ network.latitude }} , {{ network.longitude }} ), ({{ network.city }}, {{ network.region }}, {{ network.country }})</td>
+        <td>{{ network.get_max_size }}</td>
         <td>{{ network.latest_check }}</td>
     {% endfor %}
 </table>

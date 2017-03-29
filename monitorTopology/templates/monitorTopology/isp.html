@@ -7,6 +7,7 @@
 <body>
 <h1>Show details for ISP: {{ isp.name }}</h1>
 <h2>AS #: {{ isp.ASNumber }}</h2>
+<h2>ISP Type: {{ isp.type }}</h2>
 <h2>Cover networks at following locations</h2>
 <table style="width:100%">
     <tr>
@@ -23,7 +24,7 @@
         <td> {{ network.isp.name }} </td>
         <td> AS {{ network.isp.ASNumber }} </td>
         <td> ( {{ network.latitude }} , {{ network.longitude }} ), ({{ network.city }}, {{ network.region }}, {{ network.country }})</td>
-        <td> {{ network.nodes.count }} </td>
+        <td> {{ network.get_max_size }} </td>
         <td>{{ network.latest_check }}</td>
     {% endfor %}
 </table>

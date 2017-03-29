@@ -7,8 +7,9 @@
             <td>Session ID</td>
             <td>Client</td>
             <td>Server</td>
-            <td>Route Length</td>
+            <td>Maximum Route Length</td>
             <td># of subnetworks</td>
+            <td># of ISPs</td>
             <td>Latest Check</td>
         </tr>
         {% for session in sessions.all %}
@@ -17,8 +18,9 @@
             <td><a href="/get_session?id={{ session.id }}"> {{ session.id }} </a></td>
             <td> {{ session.client.name }} </td>
             <td> {{ session.server.name }} </td>
-            <td> {{ session.route.count }} </td>
-            <td> {{ session.sub_networks.count }} </td>
+            <td> {{ session.get_max_route_len }} </td>
+            <td> {{ session.get_net_cnt }} </td>
+            <td> {{ session.get_isp_cnt }} </td>
             <td>{{ session.latest_check }}</td>
         </tr>
         {% endfor %}

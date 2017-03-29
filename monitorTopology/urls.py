@@ -4,6 +4,8 @@ from monitorTopology import views
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^add_route$', views.addRoute, name='addRoute'),
+    url(r'^update_net_size', views.updateNetSize, name='updateNetSize'),
+    url(r'^update_isp_type', views.updateISPType, name='updateISPType'),
     url(r'^show_sessions', views.showSessions, name='showSessions'),
     url(r'^show_networks', views.showNetworks, name='showNetworks'),
     url(r'^get_isp_nets_json', views.getISPNetJson, name='getISPNetJson'),
@@ -15,6 +17,7 @@ urlpatterns = [
     url(r'^get_isp', views.getISP, name='getISP'),
     url(r'^get_session', views.getSession, name='getSession'),
     url(r'^get_node', views.getNode, name='getNode'),
+    url(r'^get_net_size_json$', views.getNetSizeJson, name='getNetSizeJson'),
     url(r'^get_network$', views.getNetwork, name='getNetwork'),
     url(r'^get_network_json$', views.getNetworkJson, name='getNetworkJson'),
     url(r'^get_router_graph_json', views.getRouterGraphJson, name='getRouterGraphJson'),

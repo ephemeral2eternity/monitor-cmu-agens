@@ -21,6 +21,7 @@ class ISP(models.Model):
     ASNumber = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=500, default="")
     networks = models.ManyToManyField("Network", blank=True, related_name="isp_nets")
+    type = models.CharField(max_length=100, default="transit")
 
     def __str__(self):
         return "AS " + str(self.ASNumber) + "(" + self.name + ")"
@@ -28,7 +29,7 @@ class ISP(models.Model):
     def get_size(self):
         isp_size = 0
         for network in self.networks.all().distinct():
-            isp_size += network.nodes.all().distinct().count()
+            isp_size += network.get_max_size()
         return isp_size
 
     # Network defines a network that several routers in an end-to-end delivery path belongs to
@@ -56,6 +57,20 @@ class Network(models.Model):
     def get_class_name(self):
         return "network"
 
+    # Count all session's hops through this network
+    def get_network_size(self):
+        net_size = {}
+        subnets = Subnetwork.objects.filter(network=self).all().distinct()
+        for subnet in subnets:
+            net_size[subnet.session.id] = subnet.maxHopSize
+        return net_size
+
+    def get_max_size(self):
+        all_size = self.get_network_size()
+        max_size = max(all_size.values())
+        return max_size
+
+
 ## Session information
 class Session(models.Model):
     client = models.ForeignKey(Node, related_name='client_node')
@@ -69,6 +84,33 @@ class Session(models.Model):
 
     def get_class_name(self):
         return "session"
+
+    ## Get the maximum route length
+    def get_max_route_len(self):
+        minHopCnt = 30
+        maxHopCnt = 0
+        hops = Hop.objects.filter(session=self).all()
+        for hop in hops.distinct():
+            if hop.hopID < minHopCnt:
+                minHopCnt = hop.hopID
+            if hop.hopID > maxHopCnt:
+                maxHopCnt = hop.hopID
+
+        max_route_len = maxHopCnt - minHopCnt + 1
+        return max_route_len
+
+    ## Get the count of unique networks the session goes through
+    def get_net_cnt(self):
+        return self.sub_networks.all().distinct().count()
+
+    ## Get the count of unique isps the session goes through
+    def get_isp_cnt(self):
+        isp_as = []
+        for net in self.sub_networks.all().distinct():
+            if net.isp.ASNumber not in isp_as:
+                isp_as.append(net.isp.ASNumber)
+        return len(isp_as)
+
 
     class Meta:
         index_together = ["client", "server"]
@@ -84,15 +126,39 @@ class Hop(models.Model):
     def __str__(self):
         return str(self.hopID) + ", " + str(self.node) + ", " + str(self.session)
 
+    class Meta:
+        index_together = ["session", "node", "hopID"]
+        unique_together = ["session", "node", "hopID"]
+
 # Define hop with its sequence on a client's route
 class Subnetwork(models.Model):
     session = models.ForeignKey(Session, on_delete=models.CASCADE)
     network = models.ForeignKey(Network, on_delete=models.CASCADE)
     netID = models.PositiveIntegerField()
+    maxHopSize = models.IntegerField(default=-1)
 
     def __str__(self):
         return str(self.netID) + ", " + str(self.network) + ", " + str(self.session)
 
+    class Meta:
+        index_together = ["session", "network", "netID"]
+        unique_together = ["session", "network", "netID"]
+
+    def update_max_hop_cnt(self):
+        minHopCnt = 30
+        maxHopCnt = 0
+        hops = Hop.objects.filter(node__in=self.network.nodes.all(), session=self.session).all()
+        for hop in hops.distinct():
+            if hop.hopID < minHopCnt:
+                minHopCnt = hop.hopID
+            if hop.hopID > maxHopCnt:
+                maxHopCnt = hop.hopID
+
+        self.maxHopSize = maxHopCnt - minHopCnt + 1
+        self.save()
+        return self.maxHopSize
+
+# Define the edge between two nodes.
 class Edge(models.Model):
     src = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_source')
     dst = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_target')
