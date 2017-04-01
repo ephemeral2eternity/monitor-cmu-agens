@@ -5,6 +5,53 @@ function include(arr,obj) {
     return (arr.indexOf(obj) != -1);
 }
 
+function drawLatencies(ids_str, obj_typ) {
+    var ids = JSON.parse(("[" + ids_str+ "]"));
+    var container = document.getElementById('timecurve');
+    var url = "/get_latency_json?type=" + obj_typ;
+    for (var i=0; i<ids.length; i ++) {
+        url = url + "&id=" + ids[i];
+    }
+
+    console.log(url);
+
+    $.getJSON(url, function (json) {
+        var items = json.data;
+        var data_type = json.objTyp;
+        var unique_groups = [];
+        var i;
+        for (i = 0; i < items.length; i ++) {
+            if (include(unique_groups, items[i].group)){
+                continue;
+            }
+            unique_groups.push(items[i].group);
+            items[i].label = items[i].y;
+        }
+
+        var groups = new vis.DataSet();
+        for (var j = 0; j < unique_groups.length; j ++){
+            groups.add({
+               id: j,
+               content: unique_groups[j]
+            });
+        }
+
+        console.log(groups);
+
+        var dataset = new vis.DataSet(items);
+        var options = {
+            start: json.start,
+            end: json.end,
+            legend: true,
+            dataAxis: {left: {title: {text: "Latency (ms)"}}},
+            width: '100%',
+            height: '300px',
+            style: 'line'
+        };
+        var Graph2d = new vis.Graph2d(container, dataset, groups, options);
+    });
+}
+
 function drawUpdates(obj_type, node_ids_str, anomaly_id) {
     var node_ids = JSON.parse(("[" + node_ids_str+ "]"));
     var container = document.getElementById('timecurve');

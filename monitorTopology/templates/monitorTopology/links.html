@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Links</title>
+</head>
+<body>
+{% if links %}
+    <h2>Show edges in the network</h2>
+    <table style="width:100%">
+        <tr>
+            <td>Link ID</td>
+            <td>Source Node</td>
+            <td>Source ISP</td>
+            <td>Target Node</td>
+            <td>Target ISP</td>
+            <td>Intra ISP links</td>
+        </tr>
+        {% for link in links %}
+        <tr>
+            <td><a href="/get_link?id={{ link.id }}">{{ link.id }}</a></td>
+            <td><a href="/get_node?id={{ link.src.id }}"> {{ link.src.name }} </a></td>
+            <td><a href="/get_isp?as={{ link.src.network.isp.ASNumber }}"> {{ link.src.network.isp }} </a></td>
+            <td><a href="get_node?id={{ link.dst.id }}"> {{ link.dst.name }} </a></td>
+            <td><a href="/get_isp?as={{ link.dst.network.isp.ASNumber }}">  {{ link.dst.network.isp }} </a></td>
+            <td> {{ link.isIntra }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endif %}
+</body>
+</html>

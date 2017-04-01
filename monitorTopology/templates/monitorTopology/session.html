@@ -1,8 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>QoE time curve</title>
-
+    <title>Session</title>
     <style type="text/css">
         body, html {
             font-family: sans-serif;
@@ -12,19 +11,16 @@
     <style type="text/css">
         #mynetwork {
             width: 49%;
-            height: 300px;
+            height: 400px;
             float: left;
-            border: 1px solid lightgray;
         }
         #routeTable {
             width: 50%;
             float: right;
-            border: 1px solid lightgray;
-            font-size: 10px;
+            font-size: 12px;
         }
-        #wrap
+        .row
         {
-            float: left;
             height:100%;
         }
 
@@ -39,62 +35,67 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
     <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
     <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="/static/draw_networks.js"></script>
 </head>
 {% if session %}
     <body onload="draw()">
     <h1>Show details of session {{ session.id }}</h1>
     <ul>
-        <li>Session Client Name: {{ session.client.name }}</li>
+        <li>Session Client Name: <a href="/get_node?id={{ session.client.id }}">{{ session.client.name }}</a></li>
         <li>Session Client IP: {{ session.client.ip }}</li>
-        <li>Session Server IP: {{ session.server.name }}</li>
+        <li>Session Server Name: <a href="/get_node?id={{ session.server.id }}"> {{ session.server.name }}</a></li>
         <li>Session Server IP: {{ session.server.ip }}</li>
     </ul>
     <hr>
     <h2>Show session topology</h2>
+    <div class="row" align="center">
     <div id="mynetwork"></div>
-    <div id="routeTable">
-        <table style="width:100%">
-            <tr>
-                <td>Hop ID</td>
-                <td>Hop Name</td>
-                <td>Hop IP</td>
-                <td>Hop Network ID</td>
-                <td>Node type</td>
-            </tr>
-            {% for hop in hops.all|dictsort:"hopID"  %}
+        <div id="routeTable">
+            <table style="width:100%">
                 <tr>
-                    <td> {{ hop.hopID }}</td>
-                    <td> {{ hop.node.name }} </td>
-                    <td><a href="/get_node?id={{ hop.node.id }}"> {{ hop.node.ip }} </a></td>
-                    <td><a href="/get_network?id={{ hop.node.network.id }}"> Network {{ hop.node.network.id }} </a></td>
-                    <td> {{ hop.node.type }} </td>
+                    <td align="center">Hop ID</td>
+                    <td align="center">Hop Name</td>
+                    <td align="center">Hop IP</td>
+                    <td align="center">Hop Network ID</td>
+                    <td align="left">Node type</td>
+                </tr>
+                {% for hop in hops.all|dictsort:"hopID"  %}
+                    <tr>
+                        <td align="center"> {{ hop.hopID }}</td>
+                        <td align="center"> {{ hop.node.name }} </td>
+                        <td align="center"><a href="/get_node?id={{ hop.node.id }}"> {{ hop.node.ip }} </a></td>
+                        <td align="center"><a href="/get_network?id={{ hop.node.network.id }}"> Network {{ hop.node.network.id }} </a></td>
+                        <td align="left"> {{ hop.node.type }} </td>
+                    </tr>
+                {% endfor %}
+            </table>
+        </div>
+    </div>
+    <hr>
+    <div class="row">
+        <h2>Show subnetworks of the session</h2>
+        <table style="width:95%" border="1" align="center">
+            <tr>
+                <td align="center">Subnetwork ID</td>
+                <td align="center">Network ID</td>
+                <td align="center">Network Name</td>
+                <td align="center">Network AS #</td>
+                <td align="center">Network Location</td>
+                <td align="center">Network City, Region, Country</td>
+            </tr>
+            {% for subnet in subnets.all|dictsort:"netID" %}
+                <tr>
+                    <td align="center"> {{ subnet.netID }}</td>
+                    <td align="center"><a href="/get_network?id={{ subnet.network.id }}"> Network {{ subnet.network.id}} </a></td>
+                    <td align="center"> {{ subnet.network.isp.name }} </td>
+                    <td align="center"> {{ subnet.network.isp.ASNumber }} </td>
+                    <td align="center"> ({{ subnet.network.latitude }}, {{ subnet.network.longitude }}) </td>
+                    <td align="center"> ({{ subnet.network.city }}, {{ subnet.network.region }}, {{ subnet.network.country }}) </td>
                 </tr>
             {% endfor %}
         </table>
-    </div>
-    <hr>
-    <h2>Show subnetworks of the session</h2>
-    <table style="width:100%" border="1">
-        <tr>
-            <td>Subnetwork ID</td>
-            <td>Network ID</td>
-            <td>Network Name</td>
-            <td>Network AS #</td>
-            <td>Network Location</td>
-            <td>Network City, Region, Country</td>
-        </tr>
-        {% for subnet in subnets.all|dictsort:"netID" %}
-            <tr>
-                <td> {{ subnet.netID }}</td>
-                <td><a href="/get_network?id={{ subnet.network.id }}"> Network {{ subnet.network.id}} </a></td>
-                <td> {{ subnet.network.isp.name }} </td>
-                <td> {{ subnet.network.isp.ASNumber }} </td>
-                <td> ({{ subnet.network.latitude }}, {{ subnet.network.longitude }}) </td>
-                <td> ({{ subnet.network.city }}, {{ subnet.network.region }}, {{ subnet.network.country }}) </td>
-            </tr>
-        {% endfor %}
-    </table>
+        </div>
     <hr>
 {% else %}
     <p>Please denote the session id in http://locator/diag/get_session?id=session_id.</p>

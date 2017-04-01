@@ -17,6 +17,26 @@ class Node(models.Model):
     def get_class_name(self):
         return "node"
 
+# Server class that includes a server node and all latencies measured on the server
+class Server(models.Model):
+    node = models.ForeignKey(Node)
+    latencies = models.ManyToManyField("Latency", blank=True)
+    agents = models.ManyToManyField('Agent', blank=True, through="ServerProbing")
+
+    def __str__(self):
+        return self.node.__str__()
+
+# Agent class that denotes the agent to probe a network or a server.
+class Agent(models.Model):
+    node = models.ForeignKey(Node)
+    agentType = models.CharField(max_length=100)
+    servers = models.ManyToManyField(Server, blank=True, through="ServerProbing")
+    networks = models.ManyToManyField("Network", blank=True, through="NetProbing")
+
+    def __str__(self):
+        return self.agentType + ":" + self.node.name
+
+
 class ISP(models.Model):
     ASNumber = models.IntegerField(primary_key=True)
     name = models.CharField(max_length=500, default="")
@@ -32,7 +52,7 @@ class ISP(models.Model):
             isp_size += network.get_max_size()
         return isp_size
 
-    # Network defines a network that several routers in an end-to-end delivery path belongs to
+# Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
     isp = models.ForeignKey(ISP, related_name="net_isp")
     latitude = models.DecimalField(max_digits=10, decimal_places=6, default=0.0)
@@ -41,13 +61,14 @@ class Network(models.Model):
     # network_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
     related_sessions = models.ManyToManyField('Session', through="Subnetwork", blank=True)
     latencies = models.ManyToManyField("Latency", blank=True)
+    agents = models.ManyToManyField("Agent", blank=True, through="NetProbing")
     city = models.CharField(max_length=100, default="")
     region = models.CharField(max_length=100, default="")
     country = models.CharField(max_length=100, default="")
     latest_check = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.type + ", AS " + str(self.isp.ASNumber) + ", (" + str(self.latitude) + ", " + str(
+        return "AS " + str(self.isp.ASNumber) + ", (" + str(self.latitude) + ", " + str(
             self.longitude) + ")"
 
     class Meta:
@@ -158,10 +179,26 @@ class Subnetwork(models.Model):
         self.save()
         return self.maxHopSize
 
+# Define the pair of agent and network to denote which agent is probing which network.
+class NetProbing(models.Model):
+    network = models.ForeignKey(Network)
+    agent = models.ForeignKey(Agent)
+
+    def __str__(self):
+        return self.agent.__str__() + " probing " + self.network.__str__()
+
+# Define the pair of agent and network to denote which agent is probing which network.
+class ServerProbing(models.Model):
+    server = models.ForeignKey(Server)
+    agent = models.ForeignKey(Agent)
+
+    def __str__(self):
+        return self.agent.__str__() + " probing " + self.server.__str__()
+
 # Define the edge between two nodes.
 class Edge(models.Model):
-    src = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_source')
-    dst = models.ForeignKey(Node, on_delete=models.CASCADE, related_name='node_target')
+    src = models.ForeignKey(Node, related_name='node_source')
+    dst = models.ForeignKey(Node, related_name='node_target')
     isIntra = models.BooleanField(default=False)
     latencies = models.ManyToManyField("Latency", blank=True)
 

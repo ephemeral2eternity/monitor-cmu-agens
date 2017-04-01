@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Servers</title>
+</head>
+<body>
+<h2>Show all available servers</h2>
+{% if servers %}
+    <table style="width:100%">
+        <tr>
+            <td>Server node</td>
+            <td>Agents to probe the server</td>
+        </tr>
+        {% for srv in servers %}
+        <tr>
+            <td><a href="/get_server?id={{ srv.id }}"> {{ srv.node }} </a></td>
+            <td>
+            <ul>
+                {% for agent in srv.agents.all %}
+                    <li><a href="/get_node?id={{ agent.node.id }}">{{ agent }}</a></li>
+                {% endfor %}
+            </ul>
+            </td>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No servers have been updated.</p>
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Link</title>
+
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+        }
+    </style>
+
+    <style type="text/css">
+        #timecurve {
+            width: 100%;
+            border: 1px solid lightgray;
+        }
+    </style>
+
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <script type="text/javascript" src="/static/draw_updates.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+</head>
+<body onload="drawLatencies({{ link.id }}, 'link')">
+{% if link %}
+<h1>Show details for a link {{ link }}</h1>
+    <ul>
+        <li>Source node: <a href="/get_node?id={{ link.src.id }}">{{ link.src.name }} ({{ link.src.ip }}) </a></li>
+        <li>Source network: <a href="/get_network?id={{ link.src.network.id }}">{{ link.src.network }} </a></li>
+        <li>Source ISP: <a href="/get_isp?as={{ link.src.network.isp.ASNumber }}"> {{ link.src.network.isp }} </a></li>
+        <li>Target node: <a href="/get_node?id={{ link.dst.id }}"> {{ link.dst.name }} ({{ link.dst.ip }}) </a></li>
+        <li>Target network: <a href="/get_network?id={{ link.dst.network.id }}">{{ link.dst.network }} </a></li>
+        <li>Target ISP: <a href="/get_isp?as={{ link.dst.network.isp.ASNumber }}">{{ link.dst.network.isp }} </a></li>
+    </ul>
+    <div id="timecurve"></div>
+{% endif %}
+</body>
+</html>

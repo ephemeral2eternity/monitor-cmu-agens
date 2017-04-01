@@ -1,4 +1,4 @@
-from monitorTopology.models import Session, Node, ISP, Network, Edge, NetEdge, PeeringEdge, Latency, Hop, Subnetwork
+from monitorTopology.models import Session, Node, Server, Agent, ISP, Network, Edge, NetEdge, PeeringEdge, Latency, Hop, Subnetwork
 from monitorTopology.ipinfo import *
 from django.utils import timezone
 from django.db import transaction
@@ -50,7 +50,46 @@ def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
             node_isp.networks.add(node_network)
             node_isp.save()
 
+    ## Wrap up the server node
+    if nodeTyp == "server":
+        try:
+            srv = add_server(node)
+        except:
+            print("Failed to wrap up the server node as server object: " + node.ip)
+
     return node
+
+### @function add_server(node)
+#   @descr: Wrap up a server node as a server object
+#   @params:
+#       node: the ip of the agent to be added
+def add_server(node):
+    try:
+        srv = Server.objects.get(node=node)
+    except:
+        srv = Server(node=node)
+        srv.save()
+    return srv
+
+### @function add_agent(agent_ip, agent_type)
+#   @descr: Add an agent by its ip
+#   @params:
+#       agent_ip: the ip of the agent to be added
+def add_agent(agent_ip):
+    agent_node = add_node(agent_ip, nodeTyp="client", netTyp="access")
+    if agent_node.network.isp.name.__contains__("Microsoft"):
+        agent_typ = "azure"
+    ## Check if the ISP is AWS or Google here.
+    # elif agent_node.network.isp.name.__contains__("Microsoft"):
+    else:
+        agent_typ = "planetlab"
+    try:
+        agent = Agent.objects.get(node=agent_node, agentType=agent_typ)
+    except:
+        agent = Agent(node=agent_node, agentType=agent_typ)
+        agent.save()
+    return agent
+
 
 ### @function add_private_node(pre_node, dst_isp)
 #   @descr: Add an "*" node in the network
@@ -225,6 +264,8 @@ def add_route(route):
         pre_time = cur_time
 
     latency = server["time"] - pre_time
+    if latency < 0:
+        latency = 0
     update_edge(pre_node, server_node, latency)
     add_hop(server_node, int(hop_ids[-1]), session)
 

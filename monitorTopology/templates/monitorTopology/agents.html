@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agents</title>
+</head>
+<body>
+<h2>Show all available probing agents</h2>
+{% if agents %}
+    <table style="width:100%">
+        <tr>
+            <td>Agent node</td>
+            <td>Servers to probe</td>
+            <td>Networks to probe</td>
+        </tr>
+        {% for agent in agents %}
+        <tr>
+            <td><a href="/get_node?id={{ agent.node.id }}"> {{ agent }} </a></td>
+            <td>
+            <ul>
+                {% for srv in agent.servers.all %}
+                    <li><a href="/get_node?id={{ srv.node.id }}">{{ srv }}</a></li>
+                {% endfor %}
+            </ul>
+            </td>
+            <td>
+            <ul>
+                {% for net in agent.networks.all %}
+                    <li><a href="/get_network?id={{ net.id }}">{{ net.isp }} at ({{ net.latitude }}, {{ net.longitude }})</a></li>
+                {% endfor %}
+            </ul>
+            </td>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No agents have been updated.</p>
+{% endif %}
+</body>
+</html>

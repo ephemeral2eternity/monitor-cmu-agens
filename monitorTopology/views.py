@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 import time
 import json
 import urllib
+from  monitorTopology.models import *
 from monitorTopology.monitor_utils import *
 from monitorTopology.data_utils import *
 
@@ -15,7 +16,6 @@ from monitorTopology.data_utils import *
 def index(request):
     template = loader.get_template('monitorTopology/index.html')
     return HttpResponse(template.render({}, request))
-
 
 # @description Show all sessions in the database
 def showSessions(request):
@@ -41,6 +41,23 @@ def showNodes(request):
     nodes = Node.objects.all()
     template = loader.get_template('monitorTopology/nodes.html')
     return HttpResponse(template.render({'nodes':nodes}, request))
+
+# @description Show all links discovered
+def showLinks(request):
+    links = Edge.objects.all()
+    template = loader.get_template('monitorTopology/links.html')
+    return HttpResponse(template.render({'links': links}, request))
+
+# @description Show all servers discovered
+def showServers(request):
+    servers = Server.objects.all()
+    template = loader.get_template('monitorTopology/servers.html')
+    return HttpResponse(template.render({'servers':servers}, request))
+
+def showAgents(request):
+    agents = Agent.objects.all()
+    template = loader.get_template('monitorTopology/agents.html')
+    return HttpResponse(template.render({'agents':agents}, request))
 
 # @description Get the details of one session denoted by the session id
 # @called by: showSessions.
@@ -104,6 +121,60 @@ def getNetwork(request):
         return HttpResponse(template.render({'network': network, 'edges':edges}, request))
     else:
         return showNetworks(request)
+
+# @description Get the specific link info
+def getLink(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        link_id = int(request_dict['id'][0])
+        link = Edge.objects.get(id=link_id)
+        template = loader.get_template('monitorTopology/link.html')
+        return HttpResponse(template.render({'link':link}, request))
+    else:
+        return HttpResponse("Please specify the link id in calling: /get_link?id=link_id")
+
+# @description Get the specific link info
+def getLatencyJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    latencies = []
+    latencies_obj = {}
+    if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
+        obj_typ = request_dict['type'][0]
+        ids = request_dict['id']
+        tses = []
+
+        ## The obj_typ can be "link", "network" and "server"
+        if obj_typ == "link":
+            for obj_id in ids:
+                link = Edge.objects.get(id=obj_id)
+                for lat in link.latencies.all():
+                    tses.append(lat.timestamp)
+                    latencies.append({"x": lat.timestamp, "y": lat.latency, "group": link.__str__()})
+            latencies_obj = {"data": latencies, "type": "link"}
+        else:
+            for obj_id in ids:
+                if obj_typ == "network":
+                    net = Network.objects.get(id=obj_id)
+                    for lat in net.latencies.all():
+                        tses.append(lat.timestamp)
+                        latencies.append({"x": lat.timestamp, "y": lat.latency, "group": net.__str__() + "+" + lat.agent.__str__()})
+                else:
+                    srv = Server.objects.get(id=obj_id)
+                    for lat in srv.latencies.all():
+                        tses.append(lat.timestamp)
+                        latencies.append({"x": lat.timestamp, "y": lat.latency, "group": srv.__str__() + "+" + lat.agent.__str__()})
+
+        start_ts = min(tses)
+        end_ts = max(tses)
+        latencies_obj = {"data": latencies, "start": start_ts, "end": end_ts}
+
+        return JsonResponse(latencies_obj)
+    else:
+        return JsonResponse({})
 
 # @description Get the count of hops for each session going through a given network denoted by id.
 # @description Get network size data for all networks.
@@ -285,6 +356,7 @@ def getISPPeersJson(request):
         src_idx = all_isps_related.index(src_isp_name)
         dst_idx = all_isps_related.index(dst_isp_name)
         peering_mat[src_idx][dst_idx] = 1
+        peering_mat[dst_idx][src_idx] = 1
 
         peering_json["packageNames"] = all_isps_related
         peering_json["matrix"] = peering_mat
@@ -314,7 +386,10 @@ def getISPMap(request):
     if '?' in url:
         params = url.split('?')[1]
         request_dict = urllib.parse.parse_qs(params)
-        ids = request_dict['id']
+        str_ids = request_dict['as']
+        ids = []
+        for str_id in str_ids:
+            ids.append(str_id.split("#")[1])
         ids_json = json.dumps(ids)
     else:
         isps = ISP.objects.all().distinct()
@@ -331,7 +406,10 @@ def getISPPeering(request):
     if '?' in url:
         params = url.split('?')[1]
         request_dict = urllib.parse.parse_qs(params)
-        ids = request_dict['id']
+        str_ids = request_dict['as']
+        ids = []
+        for str_id in str_ids:
+            ids.append(str_id.split("#")[1])
         ids_json = json.dumps(ids)
     else:
         isps = ISP.objects.all().distinct()
@@ -363,6 +441,40 @@ def updateISPType(request):
 
     return showISPs(request)
 
+# @description: Update the  server objects for all server nodes
+def updateServers(request):
+    srv_nodes = Node.objects.filter(type="server").all()
+
+    for srv_node in srv_nodes:
+        try:
+            srv = add_server(srv_node)
+        except:
+            print("Failed to add server for node : " + srv_node.__str__())
+
+    return showServers(request)
+
+# @description: Update the agent objects for all client nodes
+def updateAgents(request):
+    client_nodes = Node.objects.filter(type="client").all()
+
+    for client_node in client_nodes:
+        try:
+            agent = add_agent(client_node.ip)
+        except:
+            print("Failed to add server for node : " + client_node)
+
+    return showAgents(request)
+
+@csrf_exempt
+def addAgent(request):
+    agent_ip = request.META['REMOTE_ADDR']
+    try:
+        agent = add_agent(agent_ip)
+    except:
+        print("Failed to add agent with ip: " + agent_ip)
+    return HttpResponse("Successfully add agent with ip: " + agent_ip + "!")
+
+
 # @description Add the hops in the Session's route and extract the ISPs, the networks, the routers, the client
 # and the server node infos.
 @csrf_exempt
@@ -372,10 +484,10 @@ def addRoute(request):
         # print(request.body)
         start_time = time.time()
         route_info = json.loads(request.body.decode("utf-8"))
-        #try:
-        add_route(route_info)
-        #except:
-        #    print("Faiiled to add route from client " + route_info["0"]["name"])
+        try:
+            add_route(route_info)
+        except:
+            print("Faiiled to add route from client " + route_info["0"]["name"])
         time_elapsed = time.time() - start_time
         print("The total time to process an add route request is : " + str(time_elapsed) + " seconds!")
         return HttpResponse("Add successfully!")
