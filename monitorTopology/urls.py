@@ -16,7 +16,10 @@ urlpatterns = [
     url(r'^show_links', views.showLinks, name='showLinks'),
     url(r'^show_isps', views.showISPs, name='showISPs'),
     url(r'^show_nodes', views.showNodes, name='showNodes'),
+    url(r'^show_servers', views.showServers, name='showServers'),
+    url(r'^show_agents', views.showAgents, name='showAgents'),
     url(r'^get_isp_nets_json', views.getISPNetJson, name='getISPNetJson'),
+    url(r'^get_map_json', views.getMapJson, name='getMapJson'),
     url(r'^get_isp_peers_json', views.getISPPeersJson, name='getISPPeersJson'),
     url(r'^get_isp_peering', views.getISPPeering, name='getISPPeering'),
     url(r'^get_isp_map', views.getISPMap, name='getISPMap'),
@@ -32,4 +35,5 @@ urlpatterns = [
     url(r'^get_router_graph', views.getRouterGraph, name='getRouterGraph'),
     url(r'^get_net_graph_json', views.getNetworkGraphJson, name='getNetworkGraphJson'),
     url(r'^get_net_graph', views.getNetworkGraph, name='getNetworkGraph'),
+    url(r'^get_probing_ips', views.getProbingIps, name='getProbingIps'),
 ]

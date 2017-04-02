@@ -26,6 +26,9 @@ class Server(models.Model):
     def __str__(self):
         return self.node.__str__()
 
+    def get_class_name(self):
+        return "server"
+
 # Agent class that denotes the agent to probe a network or a server.
 class Agent(models.Model):
     node = models.ForeignKey(Node)
@@ -34,7 +37,10 @@ class Agent(models.Model):
     networks = models.ManyToManyField("Network", blank=True, through="NetProbing")
 
     def __str__(self):
-        return self.agentType + ":" + self.node.name
+        return self.agentType + ":" + self.node.name + "@(" + str(self.node.network.latitude) + "," + str(self.node.network.longitude) + ")"
+
+    def get_class_name(self):
+        return "agent"
 
 
 class ISP(models.Model):
@@ -45,6 +51,9 @@ class ISP(models.Model):
 
     def __str__(self):
         return "AS " + str(self.ASNumber) + "(" + self.name + ")"
+
+    def get_class_name(self):
+        return "isp"
 
     def get_size(self):
         isp_size = 0

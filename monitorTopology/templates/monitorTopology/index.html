@@ -1,3 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Show Selected ISPs</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.3.6/proj4.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://code.highcharts.com/maps/highmaps.js"></script>
+    <script src="https://code.highcharts.com/maps/modules/data.js"></script>
+    <script src="https://code.highcharts.com/mapdata/custom/world.js"></script>
+    <script src="/static/draw_maps.js"></script>
+
+    <style type="text/css">
+        #allMap {
+            width: 100%;
+            height: 500px;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body onload="draw()">
+{% load staticfiles %}
+<div id="allMap"></div>
 <h1>Cloud Agent for Monitoring: monitor.cmu-agens.com</h1>
 <br>
 <h2>Following APIs are called to visualize monitored data</h2>
@@ -15,10 +37,21 @@
     <li><a href="/update_isp_type">Update the ISP types by all sessions going through</a></li>
     <li><a href="/update_servers">Update the servers by discovered nodes</a></li>
     <li><a href="/update_agents">Update the agents by discovered nodes</a></li>
+    <li><a href="/probe_servers">Get the closest agents for all servers</a></li>
+    <li><a href="/probe_networks">Get the closest agents for all networks</a></li>
 </ul>
 <br>
 <h2>Following APIs are called to report data to the monitoring</h2>
 <ul>
     <li>http://monitor.cmu-agens.com/add_route</li>
     POST Request: Post the traceroute data from a session.
+    <li>http://monitor.cmu-agens.com/get_probing_ips</li>
+    GET Request: Get the ips to probe
 </ul>
+<script type="text/javascript">
+    function draw() {
+        drawMap();
+    }
+</script>
+</body>
+</html>

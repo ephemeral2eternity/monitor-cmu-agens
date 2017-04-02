@@ -7,6 +7,7 @@ from datetime import date, datetime, timedelta
 import time
 import json
 import urllib
+import random
 from  monitorTopology.models import *
 from monitorTopology.monitor_utils import *
 from monitorTopology.data_utils import *
@@ -380,6 +381,33 @@ def getISPNetJson(request):
                     isp_nets[isp.name].append({"lat": net.latitude, "lon": net.longitude, "netsize": net.nodes.count(), "asn": "AS " + str(isp.ASNumber)})
     return JsonResponse(isp_nets, safe=False)
 
+def getMapJson(request):
+    servers = Server.objects.all()
+    agents = Agent.objects.all()
+
+    srv_objs = []
+    for srv in servers:
+        srv_objs.append({"lat": srv.node.network.latitude, "lon": srv.node.network.longitude, "name": srv.node.name, "ip": srv.node.ip, "type":"server"})
+
+    isps = ISP.objects.all()
+    isp_nets = []
+    for isp in isps:
+        for net in isp.networks.distinct():
+            isp_nets.append({"lat": net.latitude, "lon": net.longitude, "netsize": net.nodes.count(),
+                                       "asn": "AS " + str(isp.ASNumber), "type":"isp", "name":isp.name, "netID":net.id})
+
+    agent_objs = []
+    for agent in agents:
+        agent_objs.append({"lat":agent.node.network.latitude, "lon":agent.node.network.longitude, "name":agent.node.name, "ip": agent.node.ip, "type":"agent"})
+
+    map_dict = {}
+    map_dict["server"] = srv_objs
+    map_dict["network"] = isp_nets
+    map_dict["agent"] = agent_objs
+
+    return JsonResponse(map_dict, safe=False)
+
+
 # @description Draw isps' networks in different colors on a world map
 def getISPMap(request):
     url = request.get_full_path()
@@ -397,7 +425,7 @@ def getISPMap(request):
         for isp in isps:
             ids.append(isp.ASNumber)
         ids_json = json.dumps(ids)
-    template = loader.get_template("monitorTopology/ispGraph.html")
+    template = loader.get_template("monitorTopology/map.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
 
 # @description Draw isps' peering links in a chord graph
@@ -419,6 +447,28 @@ def getISPPeering(request):
         ids_json = json.dumps(ids)
     template = loader.get_template("monitorTopology/ispPeeringGraph.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
+
+
+# @description: Get the ips to probe by the agent ip.
+def getProbingIps(request):
+    agent_ip = request.META['REMOTE_ADDR']
+    try:
+        agent = Agent.objects.get(node__ip=agent_ip)
+    except:
+        agent = add_agent(agent_ip)
+        probe_networks()
+        probe_servers()
+
+    ips = []
+    for net in agent.networks.distinct():
+        net_ips = [node.ip for node in net.nodes.distinct()]
+        ips.append(random.choice(net_ips))
+
+    for srv in agent.servers.distinct():
+        ips.append(srv.node.ip)
+
+    return JsonResponse({"ips":ips}, safe=False)
+
 
 # @description: Update all Subnetworks' hop count for all sessions going through
 def updateNetSize(request):
@@ -494,3 +544,13 @@ def addRoute(request):
     else:
         return HttpResponse(
             "Please use the POST method for http://monitor_ip/add request to add new info for a client!")
+
+# @description Find the closest agent in various types for all servers.
+def probeServers(request):
+    probe_servers()
+    return showServers(request)
+
+# @description Find the closest agent in various types for all networks.
+def probeNetworks(request):
+    probe_networks()
+    return showNetworks(request)

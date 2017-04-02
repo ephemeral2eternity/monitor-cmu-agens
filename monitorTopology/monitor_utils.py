@@ -1,7 +1,8 @@
-from monitorTopology.models import Session, Node, Server, Agent, ISP, Network, Edge, NetEdge, PeeringEdge, Latency, Hop, Subnetwork
+from monitorTopology.models import Session, Node, Server, Agent, ISP, Network, Edge, NetEdge, PeeringEdge, Latency, Hop, Subnetwork, ServerProbing, NetProbing
 from monitorTopology.ipinfo import *
 from django.utils import timezone
 from django.db import transaction
+import math
 
 ### @function add_node(node_ip, nodeTyp="router")
 #   @params:
@@ -284,3 +285,82 @@ def add_session(client, server):
         session = Session(client=client, server=server)
         session.save()
     return session
+
+
+### @function get_agent(obj, agentType)
+#   @params:
+#       obj : the server/network to probe
+#       agentType : the type of agent to obtain
+#
+def get_agent(obj, agentType):
+    agents = Agent.objects.filter(agentType=agentType).all()
+
+    obj_type = obj.get_class_name()
+    if obj_type == "server":
+        obj_lat = obj.node.network.latitude
+        obj_lon = obj.node.network.longitude
+    # By default, the else denotes the "network" case
+    else:
+        obj_lat = obj.latitude
+        obj_lon = obj.longitude
+
+    if agents.count() > 0:
+        obj_agent = agents[0]
+        min_dist = get_distance(obj_lat, obj_lon, obj_agent.node.network.latitude, obj_agent.node.network.longitude)
+        for agent in agents[1:]:
+            cur_dist = get_distance(obj_lat, obj_lon, agent.node.network.latitude, agent.node.network.longitude)
+            if cur_dist < min_dist:
+                obj_agent = agent
+                min_dist = cur_dist
+            elif cur_dist == min_dist:
+                if obj_type == "server":
+                    obj_agent_cnt = obj_agent.servers.count()
+                    cur_agent_cnt = agent.servers.count()
+                else:
+                    obj_agent_cnt = obj_agent.networks.count()
+                    cur_agent_cnt = agent.networks.count()
+                if obj_agent_cnt > cur_agent_cnt:
+                    obj_agent = agent
+                    min_dist = cur_dist
+
+        return obj_agent
+    else:
+        return None
+
+## @function get_distance(lat1, lon1, lat2, lon2)
+#   @params:
+#       lat1, lon1 : the latitude and longitude of the first object
+#       lat2, lon2 : the latitude and longitude of the first object
+#   @return: dist ---- the geographical distance
+def get_distance(lat1, lon1, lat2, lon2):
+    dist = math.sqrt((lat2 - lat1)**2 + (lon2 - lon1)**2)
+    return dist
+
+## @function probe_networks()
+#  @description: get probing agents for all networks.
+def probe_networks():
+    NetProbing.objects.all().delete()
+    nets = Network.objects.all()
+    agent_typs = ["planetlab", "azure"]
+
+    for net in nets:
+        for agentTyp in agent_typs:
+            cur_agent = get_agent(net, agentTyp)
+            if cur_agent:
+                netProbe = NetProbing(network=net, agent=cur_agent)
+                netProbe.save()
+
+## @function probe_servers()
+#  @description: get probing agents for all servers.
+def probe_servers():
+    ServerProbing.objects.all().delete()
+
+    servers = Server.objects.all()
+    agent_typs = ["planetlab", "azure"]
+
+    for srv in servers:
+        for agentTyp in agent_typs:
+            cur_agent = get_agent(srv, agentTyp)
+            if cur_agent:
+                srvProbe = ServerProbing(server=srv, agent=cur_agent)
+                srvProbe.save()

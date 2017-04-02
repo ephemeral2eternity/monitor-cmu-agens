@@ -10,12 +10,14 @@
     <table style="width:100%">
         <tr>
             <td>Agent node</td>
+            <td>Agent Location</td>
             <td>Servers to probe</td>
             <td>Networks to probe</td>
         </tr>
         {% for agent in agents %}
         <tr>
             <td><a href="/get_node?id={{ agent.node.id }}"> {{ agent }} </a></td>
+            <td>({{ agent.node.network.latitude }}, {{ agent.node.network.longitude }})</td>
             <td>
             <ul>
                 {% for srv in agent.servers.all %}
