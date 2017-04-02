@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Server</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <script type="text/javascript" src="/static/draw_updates.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+</head>
+<body onload="drawLatencies({{ server.id }}, 'server')">
+{% if server %}
+    <ul>
+        <li>Server Name: {{ server.node.name }}</li>
+        <li>Server IP: {{ server.node.ip }}</li>
+        <li>Server Network: <a href="/get_network?id={{ server.node.network.id }}"> {{ server.node.network }} </a></li>
+    </ul>
+    <h2>Latencies probed on the server</h2>
+    <div id="timecurve"></div>
+{% endif %}
+</body>
+</html>

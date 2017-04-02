@@ -136,6 +136,23 @@ def getLink(request):
     else:
         return HttpResponse("Please specify the link id in calling: /get_link?id=link_id")
 
+# @description Get the specific server info
+def getServer(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        srv_id = int(request_dict['id'][0])
+        srv = Server.objects.get(id=srv_id)
+    elif ('ip' in request_dict.keys):
+        srv_ip = request_dict['ip'][0]
+        srv = Server.objects.get(node__ip=srv_ip)
+    else:
+        srv = random.choice(Server.objects.all().distinct())
+
+    template = loader.get_template('monitorTopology/server.html')
+    return HttpResponse(template.render({'server':srv}, request))
+
 # @description Get the specific link info
 def getLatencyJson(request):
     url = request.get_full_path()
@@ -169,8 +186,12 @@ def getLatencyJson(request):
                         tses.append(lat.timestamp)
                         latencies.append({"x": lat.timestamp, "y": lat.latency, "group": srv.__str__() + "+" + lat.agent.__str__()})
 
-        start_ts = min(tses)
-        end_ts = max(tses)
+        if len(tses) > 0:
+            start_ts = min(tses)
+            end_ts = max(tses)
+        else:
+            start_ts = time.time() - 600
+            end_ts = time.time()
         latencies_obj = {"data": latencies, "start": start_ts, "end": end_ts}
 
         return JsonResponse(latencies_obj)
@@ -461,7 +482,7 @@ def getProbingIps(request):
 
     ips = []
     for net in agent.networks.distinct():
-        net_ips = [node.ip for node in net.nodes.distinct()]
+        net_ips = [node.ip for node in net.nodes.filter(type="router").distinct()]
         ips.append(random.choice(net_ips))
 
     for srv in agent.servers.distinct():
@@ -554,3 +575,30 @@ def probeServers(request):
 def probeNetworks(request):
     probe_networks()
     return showNetworks(request)
+
+# @description Report the monitored latencies to the network/server probed.
+@csrf_exempt
+def reportMonitoring(request):
+    agent_ip = request.META['REMOTE_ADDR']
+    agent = Agent.objects.get(node__ip=agent_ip)
+    if request.method == "POST":
+        ## Update the client info
+        latency_info = json.loads(request.body.decode("utf-8"))
+        ips = latency_info.keys()
+        for ip in ips:
+            cur_node = Node.objects.get(ip=ip)
+            cur_lats = latency_info[ip]
+            if cur_node.type == "server":
+                obj = Server.objects.get(node=cur_node)
+            else:
+                obj = cur_node.network
+
+            for ts in sorted(cur_lats.keys(), key=float):
+                cur_dt = datetime.utcfromtimestamp(float(ts))
+                cur_lat = Latency(agent=agent, latency=float(cur_lats[ts]), timestamp=cur_dt)
+                cur_lat.save()
+                obj.latencies.add(cur_lat)
+            obj.save()
+        return HttpResponse("Report successfully from agent: " + agent_ip)
+    else:
+        return HttpResponse("You need to use POST method to report monitored data!")

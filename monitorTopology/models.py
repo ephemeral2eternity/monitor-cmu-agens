@@ -243,6 +243,6 @@ class PeeringEdge(models.Model):
         return str(self.srcISP) + "<--->" + str(self.dstISP)
 
 class Latency(models.Model):
-    agent = models.ForeignKey(Node, default=None, null=True)
+    agent = models.ForeignKey(Agent, default=None, null=True)
     latency = models.DecimalField(decimal_places=4, max_digits=10)
     timestamp = models.DateTimeField()

@@ -4,6 +4,7 @@
     <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
     <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
     <script src="/static/draw_networks.js"></script>
+    <script type="text/javascript" src="/static/draw_updates.js"></script>
 
     <style type="text/css">
         #wrap {
@@ -103,12 +104,15 @@
         {% endfor %}
     </table>
 </div>
+    <h2>Latencies probed on the server</h2>
+    <div id="timecurve"></div>
 {% endif %}
 <hr>
 <script type="text/javascript">
     function draw(){
         var network_id = {{ network.id|safe }};
         drawNetwork(network_id);
+        drawLatencies(network_id, "network");
         var net_size = {{ network.get_network_size|safe }};
         var str_to_write = "<table>";
         str_to_write += "<tr><td>The session id</td><td>The span of hops</td></tr>";
