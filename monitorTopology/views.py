@@ -8,6 +8,7 @@ import time
 import json
 import urllib
 import random
+import pytz
 from  monitorTopology.models import *
 from monitorTopology.monitor_utils import *
 from monitorTopology.data_utils import *
@@ -596,7 +597,7 @@ def reportMonitoring(request):
                 obj = cur_node.network
 
             for ts in sorted(cur_lats.keys(), key=float):
-                cur_dt = datetime.utcfromtimestamp(float(ts))
+                cur_dt = datetime.utcfromtimestamp(float(ts)).replace(tzinfo=pytz.utc)
                 cur_lat = Latency(agent=agent, latency=float(cur_lats[ts]), timestamp=cur_dt)
                 cur_lat.save()
                 obj.latencies.add(cur_lat)
