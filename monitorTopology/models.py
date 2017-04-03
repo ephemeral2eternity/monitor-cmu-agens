@@ -4,7 +4,7 @@ from django.db import models
 # Node class defines a node that is either a router, or a client , or a server
 class Node(models.Model):
     name = models.CharField(max_length=500)
-    ip = models.CharField(max_length=100, unique=True)
+    ip = models.CharField(max_length=100)
     type = models.CharField(max_length=100)
     network = models.ForeignKey('Network')
     # node_qoe_score = models.DecimalField(default=5, max_digits=5, decimal_places=4)
@@ -13,6 +13,10 @@ class Node(models.Model):
 
     def __str__(self):
         return self.type + ":" + self.ip
+
+    class Meta:
+        index_together = ["network", "ip"]
+        unique_together = ["network", "ip"]
 
     def get_class_name(self):
         return "node"
@@ -230,6 +234,7 @@ class NetEdge(models.Model):
     latest_check = models.DateTimeField(auto_now=True)
 
     class Meta:
+        index_together = ["srcNet", "dstNet"]
         unique_together = ["srcNet", "dstNet"]
 
     def __str__(self):

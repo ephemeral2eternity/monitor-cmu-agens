@@ -107,10 +107,10 @@ def add_agent(agent_ip):
 #   @params:
 #       pre_node : previous known node
 def add_private_node(pre_node, nodeTyp="router"):
+    cur_net = pre_node.network
     try:
-        private_node = Node.objects.get(ip="*", name="*", type=nodeTyp, network=pre_node.network)
+        private_node = Node.objects.get(ip="*", network=pre_node.network)
     except:
-        cur_net = pre_node.network
         private_node = Node(ip="*", name="*", type=nodeTyp, network=cur_net)
         private_node.save()
         if private_node not in cur_net.nodes.all():
@@ -163,7 +163,7 @@ def update_net_edge(srcNet, dstNet, isIntra):
         dstNet = tmpNet
 
     try:
-        net_edge = NetEdge.objects.get(srcNet, dstNet)
+        net_edge = NetEdge.objects.get(srcNet=srcNet, dstNet=dstNet)
     except:
         net_edge = NetEdge(srcNet=srcNet, dstNet=dstNet, isIntra=isIntra)
         net_edge.save()
