@@ -2,6 +2,7 @@ from monitorTopology.models import Session, Node, Server, Agent, ISP, Network, E
 from monitorTopology.ipinfo import *
 from django.utils import timezone
 from django.db import transaction
+from monitorTopology.azure_agents import *
 import math
 
 ### @function add_node(node_ip, nodeTyp="router")
@@ -59,6 +60,15 @@ def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
             print("Failed to wrap up the server node as server object: " + node.ip)
 
     return node
+
+### @function init_azure_nodes()
+#   @descr: Add all Azure nodes
+#   @params:
+#       node: the ip of the agent to be added
+def init_azure_nodes():
+    azure_nodes = list_azure_agents("monitoring", "agent-")
+    for azure_node in azure_nodes:
+        az_node = add_node(azure_node["ip"], nodeTyp="client", nodeName=azure_node["name"], netTyp="cloud")
 
 ### @function add_server(node)
 #   @descr: Wrap up a server node as a server object
