@@ -34,7 +34,7 @@ def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
         try:
             node_network = Network.objects.get(isp=node_isp, latitude=latitude_str, longitude=longitude_str)
         except:
-            node_network = Network(isp=node_isp, latitude=latitude_str, longitude=longitude_str)
+            node_network = Network(isp=node_isp, latitude=latitude_str, longitude=longitude_str, city=node_info["city"], region=node_info["region"], country=node_info["country"])
             node_network.save()
 
 
