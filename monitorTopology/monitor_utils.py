@@ -265,6 +265,8 @@ def add_route(route):
         cur_time = cur_hop["time"]
 
         latency = cur_time - pre_time
+        if latency < 0:
+            latency = 0
         update_edge(pre_node, cur_node, latency)
         add_hop(cur_node, hop_id, session)
         if cur_node.network.id != pre_node.network.id:
