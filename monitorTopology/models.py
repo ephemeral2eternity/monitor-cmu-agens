@@ -97,7 +97,10 @@ class Network(models.Model):
 
     def get_max_size(self):
         all_size = self.get_network_size()
-        max_size = max(all_size.values())
+        if all_size:
+            max_size = max(all_size.values())
+        else:
+            max_size = -1
         return max_size
 
 

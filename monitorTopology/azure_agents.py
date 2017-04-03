@@ -38,9 +38,9 @@ def list_azure_agents(rg_name, prefix):
     vms = compute_client.virtual_machines.list(rg_name)
     for vm in vms:
         vm_name = vm.name
-        print(vm_name)
+        # print(vm_name)
         if prefix in vm_name:
-            vm_ip = network_client.public_ip_addresses.get(rg_name, vm_name).ip_address
+            vm_ip = network_client.public_ip_addresses.get(rg_name, vm_name+"-ip").ip_address
             vm_location = vm.location
             print(vm_name, vm_ip, vm_location)
             cur_agent = {"name" : vm_name, "ip" : vm_ip, "location" : vm_location}
@@ -50,5 +50,5 @@ def list_azure_agents(rg_name, prefix):
     return agents
 
 if __name__ == '__main__':
-    agents = list_agents("monitoring", "agent-")
+    agents = list_azure_agents("monitoring", "agent-")
     print(agents)
