@@ -482,7 +482,7 @@ def getProbingIps(request):
 
     ips = []
     for net in agent.networks.distinct():
-        net_ips = [node.ip for node in net.nodes.filter(type="router").distinct()]
+        net_ips = [node.ip for node in net.nodes.filter(type="router").exclude(ip="*").distinct()]
         if net_ips:
             ips.append(random.choice(net_ips))
 
