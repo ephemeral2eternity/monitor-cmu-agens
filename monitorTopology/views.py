@@ -9,9 +9,10 @@ import json
 import urllib
 import random
 import pytz
-from  monitorTopology.models import *
+from monitorTopology.models import *
 from monitorTopology.monitor_utils import *
 from monitorTopology.data_utils import *
+from monitorTopology.lat_utils import *
 
 # Create your views here.
 # Show detailed info of all clients connecting to this agent.
@@ -605,3 +606,32 @@ def reportMonitoring(request):
         return HttpResponse("Report successfully from agent: " + agent_ip)
     else:
         return HttpResponse("You need to use POST method to report monitored data!")
+
+# @description Get the network latencies mean/std by denoting the network type
+def statNetLat(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        netType = request_dict['net'][0]
+        agentType = request_dict['agent'][0]
+    else:
+        netType = "transit"
+        agentType = "azure"
+
+    networks = Network.objects.filter(isp__type=netType)
+
+    lat_stat = []
+
+    for net in networks:
+        latencies = net.latencies.filter(agent__agentType=agentType)
+        latMn, latSTD = get_lat_stat(latencies)
+        lat_stat.append({"Network":net.__str__(), "Mean": latMn, "STD":latSTD})
+
+    lat_stat_json = {"data":lat_stat}
+
+    return JsonResponse(lat_stat_json, safe=True)
+
+
+
+
