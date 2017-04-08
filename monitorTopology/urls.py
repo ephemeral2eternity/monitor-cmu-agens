@@ -39,4 +39,5 @@ urlpatterns = [
     url(r'^get_net_graph', views.getNetworkGraph, name='getNetworkGraph'),
     url(r'^get_probing_ips', views.getProbingIps, name='getProbingIps'),
     url(r'^stat_net_lat', views.statNetLat, name='statNetLat'),
+    url(r'^draw_stat_net_lat', views.drawStatNetLat, name='drawStatNetLat'),
 ]

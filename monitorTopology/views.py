@@ -626,12 +626,14 @@ def statNetLat(request):
     for net in networks:
         latencies = net.latencies.filter(agent__agentType=agentType)
         latMn, latSTD = get_lat_stat(latencies)
-        lat_stat.append({"Network":net.__str__(), "Mean": latMn, "STD":latSTD})
+        lat_stat.append({"name":net.__str__(), "mean": latMn, "std":latSTD})
 
     lat_stat_json = {"data":lat_stat}
 
     return JsonResponse(lat_stat_json, safe=True)
 
-
-
+# @description Draw bar graphs for network latencies
+def drawStatNetLat(request):
+    template = loader.get_template("monitorTopology/latHistogram.html")
+    return HttpResponse(template.render({}, request))
 

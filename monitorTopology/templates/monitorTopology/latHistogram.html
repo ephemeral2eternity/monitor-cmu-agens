@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Histogram of Network Latencies</title>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <script src="/static/draw_lats.js"></script>
+</head>
+<body onload="draw()">
+<h1>Show all networks and their mean latencies</h1>
+<h2>Show mean latencies for all transit networks from Azure agents</h2>
+<div id="transitAzure"></div>
+<h2>Show mean latencies for all transit networks from Planetlab agents</h2>
+<div id="transitPlanetlab"></div>
+<h2>Show mean latencies for all access networks from Azure agents</h2>
+<div id="accessAzure"></div>
+<h2>Show mean latencies for all access networks from Planetlab agents</h2>
+<div id="accessPlanetlab"></div>
+
+<script type="text/javascript">
+    function draw() {
+        drawNetLat("transit", "azure", "transitAzure");
+        drawNetLat("transit", "planetlab", "transitPlanetlab");
+        drawNetLat("access", "azure", "accessAzure");
+        drawNetLat("access", "planetlab", "accessPlanetlab");
+    }
+</script>
+</body>
+</html>
