@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Anomaly Statistics</title>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script src="/static/draw_charts.js"></script>
+    <script>
+        function onload() {
+            draw_top_origins("/stat_qoe_anomalies_json");
+        }
+    </script>
+    <style>
+        body, input {
+            font: 12pt verdana;
+        }
+    </style>
+</head>
+<body onload="onload()">
+<h1>Anomaly Statistics</h1>
+<h3>Anomalies per category</h3>
+<h3># of anomalies that are identified in transit ISPs</h3>
+<div id="transitISP"></div>
+<h3># of anomalies that are identified in access ISPs</h3>
+<div id="accessISP"></div>
+<h3># of anomalies that are identified in transit networks</h3>
+<div id="transitNet"></div>
+<h3># of anomalies that are identified in access networks</h3>
+<div id="accessNet"></div>
+<h3># of anomalies that are identified in cloud networks</h3>
+<div id="cloudNet"></div>
+<h3># of anomalies that are identified in servers</h3>
+<div id="server"></div>
+</body>
+</html>

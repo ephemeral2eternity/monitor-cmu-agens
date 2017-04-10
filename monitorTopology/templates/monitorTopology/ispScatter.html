@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Show QoE anomalies in ISPs</title>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script src="/static/scatter_plot.js"></script>
+    <script>
+        function onload() {
+            scatterISP("/scatter_origin_anomalies_json");
+        }
+    </script>
+</head>
+<body onload="onload()">
+<h1>Scatter QoE anomalies over ISP properties</h1>
+<h2>Details for transit ISPs</h2>
+<h3># of QoE anomalies over # of ISP peers</h3>
+<div id="transitISPPeers"></div>
+<h3># of QoE anomalies over ISP size (# of discovered ips in the network)</h3>
+<div id="transitISPSize"></div>
+<h3># of QoE anomalies over the geographical coverage of ISP</h3>
+<div id="transitISPGeoCoverage"></div>
+<h3># of QoE anomalies over the maximum span of ISP</h3>
+<div id="transitISPSpan"></div>
+<h2>Details for access ISPs</h2>
+<h3># of QoE anomalies over # of ISP peers</h3>
+<div id="accessISPPeers"></div>
+<h3># of QoE anomalies over ISP size (# of discovered ips in the network)</h3>
+<div id="accessISPSize"></div>
+<h3># of QoE anomalies over the geographical coverage of ISP</h3>
+<div id="accessISPGeoCoverage"></div>
+<h3># of QoE anomalies over the maximum span of ISP</h3>
+<div id="accessISPSpan"></div>
+</body>
+</html>

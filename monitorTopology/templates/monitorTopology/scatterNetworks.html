@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Show QoE anomalies in All networks</title>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.0/jquery.min.js"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/modules/exporting.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script src="/static/scatter_plot.js"></script>
+    <script>
+        function onload() {
+            scatterNetworks("/scatter_origin_anomalies_json");
+        }
+    </script>
+</head>
+<body onload="onload()">
+<h1>Scatter QoE anomalies over ISP properties</h1>
+<h2>Details for transit networks</h2>
+<h3># of QoE anomalies over the mean latencies to the network from Azure agents</h3>
+<div id="transitNetAzMn"></div>
+<h3># of QoE anomalies over the std of latencies to the network from Azure agents</h3>
+<div id="transitNetAzStd"></div>
+<h3># of QoE anomalies over the mean latencies to the network from Planetlab agents</h3>
+<div id="transitNetPlMn"></div>
+<h3># of QoE anomalies over the std of latencies to the network from Planetlab agents</h3>
+<div id="transitNetPlStd"></div>
+<h2>Details for access networks</h2>
+<h3># of QoE anomalies over the mean latencies to the network from Azure agents</h3>
+<div id="accessNetAzMn"></div>
+<h3># of QoE anomalies over the std of latencies to the network from Azure agents</h3>
+<div id="accessNetAzStd"></div>
+<h3># of QoE anomalies over the mean latencies to the network from Planetlab agents</h3>
+<div id="accessNetPlMn"></div>
+<h3># of QoE anomalies over the std of latencies to the network from Planetlab agents</h3>
+<div id="accessNetPlStd"></div>
+</body>
+</html>

@@ -66,6 +66,17 @@ function draw_pie_chart(json_url){
 }
 
 function draw_top_origins(json_url) {
+    $.getJSON(json_url, function (json) {
+        draw_origin_hist(json.transitISP, "transitISP");
+        draw_origin_hist(json.accessISP, "accessISP");
+        draw_origin_hist(json.transitNet, "transitNet");
+        draw_origin_hist(json.accessNet, "accessNet");
+        draw_origin_hist(json.cloudNet, "cloudNet");
+        draw_origin_hist(json.server, "server");
+    });
+}
+
+function draw_origin_hist(data, divTag){
     Highcharts.theme = {
         colors: ['#006400', '#FFA500', '#8B0000', '#4682B4'],
         chart: {
@@ -150,78 +161,84 @@ function draw_top_origins(json_url) {
 
     // Apply the theme
     Highcharts.setOptions(Highcharts.theme);
-    $.getJSON(json_url, function (json) {
-        console.log(json.origin);
-        console.log(json.light);
-        console.log(json.medium);
-        console.log(json.severe);
-        Highcharts.chart('barChart', {
-            chart: {
-                type: 'column'
-            },
+
+    var origins;
+    if (divTag.includes("ISP")||divTag.includes("Net")) {
+        origins = [];
+        for (var i = 0; i < data.origin.length; i++) {
+            origins.push("AS " + data.origin[i]);
+        }
+    }
+    else {
+        origins = data.origin;
+    }
+
+    Highcharts.chart(divTag, {
+        chart: {
+            type: 'column'
+        },
+        title: {
+            text: '# of anomalies at different origins',
+            style: {
+                fontSize: '20px'
+            }
+        },
+        subtitle: {
+            text: '# of anomalies counted by their top 1 origin',
+            style: {
+                fontSize: '12px'
+            }
+        },
+        xAxis: {
+            categories: origins,
+            crosshair: true,
+            labels: {
+                // rotation: -45,
+                style: {
+                    fontSize: '13px',
+                    fontFamily: 'Verdana, sans-serif'
+                }
+            }
+        },
+        yAxis: {
+            min: 0,
             title: {
-                text: '# of anomalies over origins',
+                text: '# of anomalies',
                 style: {
-                    fontSize: '20px'
+                    fontSize: '13px',
+                    fontFamily: 'Verdana, sans-serif'
                 }
-            },
-            subtitle: {
-                text: '# of anomalies counted by their top 1 origin',
-                style: {
-                    fontSize: '12px'
-                }
-            },
-            xAxis: {
-                categories: json.origin,
-                crosshair: true,
-                labels: {
-                    // rotation: -45,
-                    style: {
-                        fontSize: '13px',
-                        fontFamily: 'Verdana, sans-serif'
-                    }
-                }
-            },
-            yAxis: {
-                min: 0,
-                title: {
-                    text: '# of anomalies',
-                    style: {
-                        fontSize: '13px',
-                        fontFamily: 'Verdana, sans-serif'
-                    }
-                }
-            },
-            tooltip: {
-                headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
-                pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
-                '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
-                footerFormat: '</table>',
-                shared: true,
-                useHTML: true
-            },
-            plotOptions: {
-                column: {
-                    pointPadding: 0.2,
-                    borderWidth: 0
-                }
-            },
-            series: [{
-                name: 'Light',
-                data: json.light
+            }
+        },
+        tooltip: {
+            headerFormat: '<span style="font-size:10px">{point.key}</span><table>',
+            pointFormat: '<tr><td style="color:{series.color};padding:0">{series.name}: </td>' +
+            '<td style="padding:0"><b>{point.y:.1f}</b></td></tr>',
+            footerFormat: '</table>',
+            shared: true,
+            useHTML: true
+        },
+        plotOptions: {
+            column: {
+                pointPadding: 0.2,
+                borderWidth: 0
+            }
+        },
+        series: [{
+            name: 'Light',
+            data: data.light
 
-            }, {
-                name: 'Medium',
-                data: json.medium
+        }, {
+            name: 'Medium',
+            data: data.medium
 
-            }, {
-                name: 'Severe',
-                data: json.severe
+        }, {
+            name: 'Severe',
+            data: data.severe
 
-            }, {
-                name: 'Total',
-                data: json.total
-            }]
-        });
+        }, {
+            name: 'Total',
+            data: data.total
+        }]
     });
 }

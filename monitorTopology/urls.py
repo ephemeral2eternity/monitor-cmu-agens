@@ -39,5 +39,10 @@ urlpatterns = [
     url(r'^get_net_graph', views.getNetworkGraph, name='getNetworkGraph'),
     url(r'^get_probing_ips', views.getProbingIps, name='getProbingIps'),
     url(r'^stat_net_lat', views.statNetLat, name='statNetLat'),
+    url(r'^stat_qoe_anomalies_json', views.statQoEAnomaliesJson, name='statQoEAnomaliesJson'),
+    url(r'^scatter_origin_anomalies_json', views.scatterOriginAnomalisJson, name='scatterOriginAnomalisJson'),
+    url(r'^scatter_isps', views.scatterISP, name='scatterISP'),
+    url(r'^scatter_networks', views.scatterNetworks, name='scatterNetworks'),
+    url(r'^draw_stat_qoe_anomalies', views.drawStatQoEAnomalies, name='drawStatQoEAnomalies'),
     url(r'^draw_stat_net_lat', views.drawStatNetLat, name='drawStatNetLat'),
 ]

@@ -31,6 +31,10 @@
     <li><a href="/show_servers">Show all servers that are discovered</a></li>
     <li><a href="/show_agents">Show all agents that are discovered</a></li>
     <li><a href="/show_links">Show all links that are discovered in the traceroute sessions</a></li>
+    <li><a href="/draw_stat_net_lat">Show mean latencies for all networks</a></li>
+    <li><a href="/draw_stat_qoe_anomalies">Show QoE anomalies in each type of origins</a></li>
+    <li><a href="/scatter_isps">Scatter QoE anomalies over ISP properties</a></li>
+    <li><a href="/scatter_networks">Scatter QoE anomalies over Network latencies</a></li>
 </ul>
 <br>
 <h2>Following APIs are called to refresh stats in database</h2>
@@ -41,6 +45,8 @@
     <li><a href="/update_agents">Update the agents by discovered nodes</a></li>
     <li><a href="/probe_servers">Get the closest agents for all servers</a></li>
     <li><a href="/probe_networks">Get the closest agents for all networks</a></li>
+    <li><a href="/stat_qoe_anomalies_json">Cache all QoE anomaly data locally</a></li>
+    <li><a href="/scatter_origin_anomalies_json">Cache all QoE anomaly scatter data locally</a></li>
 </ul>
 <br>
 <h2>Following APIs are called to report data to the monitoring</h2>

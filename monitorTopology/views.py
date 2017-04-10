@@ -13,6 +13,7 @@ from monitorTopology.models import *
 from monitorTopology.monitor_utils import *
 from monitorTopology.data_utils import *
 from monitorTopology.lat_utils import *
+from monitorTopology.comm_utils import *
 
 # Create your views here.
 # Show detailed info of all clients connecting to this agent.
@@ -635,5 +636,30 @@ def statNetLat(request):
 # @description Draw bar graphs for network latencies
 def drawStatNetLat(request):
     template = loader.get_template("monitorTopology/latHistogram.html")
+    return HttpResponse(template.render({}, request))
+
+# @description Draw bar graphs for network latencies
+def statQoEAnomaliesJson(request):
+    qoeAnomaliesStatsJson = getQoEAnomaliesStats()
+    return JsonResponse(qoeAnomaliesStatsJson, safe=True)
+
+# @description Draw bar graphs for network latencies
+def drawStatQoEAnomalies(request):
+    template = loader.get_template("monitorTopology/anomalyStats.html")
+    return HttpResponse(template.render({}, request))
+
+# @description Draw bar graphs for network latencies
+def scatterOriginAnomalisJson(request):
+    origin_anomalies_json = get_scatter_origin_anomalies_json()
+    return JsonResponse(origin_anomalies_json, safe=False)
+
+# @description Draw bar graphs for network latencies
+def scatterISP(request):
+    template = loader.get_template("monitorTopology/ispScatter.html")
+    return HttpResponse(template.render({}, request))
+
+# @description Draw bar graphs for network latencies
+def scatterNetworks(request):
+    template = loader.get_template("monitorTopology/scatterNetworks.html")
     return HttpResponse(template.render({}, request))
 

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 
 # Create your models here.
 # Node class defines a node that is either a router, or a client , or a server
@@ -59,11 +60,33 @@ class ISP(models.Model):
     def get_class_name(self):
         return "isp"
 
-    def get_size(self):
+    def get_geo_coverage(self):
+        return self.networks.all().distinct().count()
+
+    def get_node_size(self):
         isp_size = 0
         for network in self.networks.all().distinct():
-            isp_size += network.get_max_size()
+            isp_size += network.get_nodes_num()
         return isp_size
+
+    def get_max_span(self):
+        isp_span = 0
+        for network in self.networks.all().distinct():
+            isp_span = max(network.get_max_size(), isp_span)
+        return isp_span
+
+    def get_peers(self):
+        peers = []
+        all_peering_links = PeeringEdge.objects.filter(Q(srcISP=self)|Q(dstISP=self)).distinct()
+        for peering_link in all_peering_links:
+            if peering_link.srcISP == self:
+                peerISP = peering_link.dstISP
+            else:
+                peerISP = peering_link.srcISP
+            if peerISP.ASNumber not in peers:
+                peers.append(peerISP.ASNumber)
+        return peers
+
 
 # Network defines a network that several routers in an end-to-end delivery path belongs to
 class Network(models.Model):
@@ -90,6 +113,9 @@ class Network(models.Model):
 
     def get_class_name(self):
         return "network"
+
+    def get_nodes_num(self):
+        return self.nodes.distinct().count()
 
     # Count all session's hops through this network
     def get_network_size(self):
