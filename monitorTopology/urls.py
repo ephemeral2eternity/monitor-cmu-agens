@@ -19,6 +19,7 @@ urlpatterns = [
     url(r'^show_nodes', views.showNodes, name='showNodes'),
     url(r'^show_servers', views.showServers, name='showServers'),
     url(r'^show_agents', views.showAgents, name='showAgents'),
+    url(r'^get_all_isps_json', views.getAllISPsJson, name='getAllISPsJson'),
     url(r'^get_isp_nets_json', views.getISPNetJson, name='getISPNetJson'),
     url(r'^get_map_json', views.getMapJson, name='getMapJson'),
     url(r'^get_isp_peers_json', views.getISPPeersJson, name='getISPPeersJson'),

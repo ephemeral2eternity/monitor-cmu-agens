@@ -327,6 +327,16 @@ def getRouterGraph(request):
     template = loader.get_template("monitorTopology/routerGraph.html")
     return HttpResponse(template.render({'ids': ids_json}, request))
 
+def getAllISPsJson(request):
+    isps = ISP.objects.all().distinct()
+    all_isps = []
+
+    for isp in isps:
+        all_isps.append({"as":isp.ASNumber, "isp":isp.name, "type":isp.type, "geoCoverage":isp.get_geo_coverage(), "span":isp.get_max_span(), "size":isp.get_node_size(), "peers":isp.get_peers()})
+
+    return JsonResponse(all_isps, safe=False)
+
+
 # @description Get the peering links in json file of all isps denoted by their as numbers.
 # Prepare the data for function: getISPPeering
 def getISPPeersJson(request):
