@@ -50,8 +50,8 @@ def list_azure_agents(rg_name, prefix):
     return agents
 
 def list_locators(rg_name, prefix):
-    # info_dict = json.load(open(os.path.dirname(__file__) + "/info.json"))
-    info_dict = json.load(open(os.getcwd() + "/info.json"))
+    info_dict = json.load(open(os.path.dirname(__file__) + "/info.json"))
+    # info_dict = json.load(open(os.getcwd() + "/info.json"))
     subscription_id = info_dict["subscription_id"]
     # TODO: See above how to get a Credentials instance
     credentials = UserPassCredentials(

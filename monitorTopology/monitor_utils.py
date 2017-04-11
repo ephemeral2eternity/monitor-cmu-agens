@@ -6,7 +6,13 @@ from monitorTopology.azure_agents import *
 from monitorTopology.comm_utils import *
 from monitorTopology.lat_utils import *
 import math
+import sys
 import requests
+# import the logging library
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__package__)
 
 ### @function add_node(node_ip, nodeTyp="router")
 #   @params:
@@ -382,6 +388,16 @@ def probe_servers():
 
 # @descr: Get the anomaly counts per origin type for histogram graphs
 def getQoEAnomaliesStats():
+    curfilePath = os.path.abspath(__file__)
+    curDir = os.path.abspath(os.path.join(curfilePath, os.pardir))  # this will return current directory in which python file resides.
+    parentDir = os.path.abspath(os.path.join(curDir, os.pardir))  # this will return parent directory.
+    outputJsonName = "anomaly_stats_" + time.strftime("%m%d") + ".json"
+
+    if os.path.exists(parentDir + "/databackup/" + outputJsonName):
+        with open(parentDir + "/databackup/" + outputJsonName) as json_data:
+            all_origin_stats_dict = json.load(json_data)
+            return all_origin_stats_dict
+
     all_qoe_anomalies = get_all_qoe_anomalies()
     all_origin_stats_dict = {}
     for origin_type in all_qoe_anomalies.keys():
@@ -417,10 +433,13 @@ def getQoEAnomaliesStats():
 
         # print(origin_stats_dict)
         all_origin_stats_dict[origin_type] = origin_stats_dict
+        with open(parentDir + "/databackup/" + outputJsonName, "w") as outFile:
+            json.dump(all_origin_stats_dict, outFile, sort_keys=True, indent=4, ensure_ascii=True)
     return all_origin_stats_dict
 
 
 def get_scatter_origin_anomalies_json():
+    logger.info("Running get_scatter_origin_anomalies_json")
     all_origin_stats_dict = getQoEAnomaliesStats()
     curfilePath = os.path.abspath(__file__)
     curDir = os.path.abspath(os.path.join(curfilePath, os.pardir))  # this will return current directory in which python file resides.
@@ -437,58 +456,73 @@ def get_scatter_origin_anomalies_json():
         if origin_type not in scatter_origin_json.keys():
             scatter_origin_json[origin_type] = {}
         for severity in all_origin_stats_dict[origin_type].keys():
+            ## Ignore the origin field
+            if severity == "origin":
+                continue
+
             if severity not in scatter_origin_json[origin_type].keys():
                 scatter_origin_json[origin_type][severity] = []
             cur_anomaly_cnts = all_origin_stats_dict[origin_type][severity]
             origins = all_origin_stats_dict[origin_type]["origin"]
             if "ISP" in origin_type:
                 for i, origin in enumerate(origins):
-                    print("Processing ISP with AS number : " + origin)
+                    # print("Processing ISP with AS number : " + origin)
                     try:
                         isp = ISP.objects.get(ASNumber=origin)
+                        # print("Obtained ISP with AS number : " + origin)
                         anomalyCnt = cur_anomaly_cnts[i]["y"]
+                        if anomalyCnt > 0:
                         # print(anomalyCnt)
-                        scatter_origin_json[origin_type][severity].append({"as":isp.ASNumber, "isp":isp.name, "geoCoverage":isp.get_geo_coverage(),
-                                    "peers": len(isp.get_peers()), "size":isp.get_node_size(), "span":isp.get_max_span(), "count":anomalyCnt})
+                            scatter_origin_json[origin_type][severity].append({"as":isp.ASNumber, "isp":isp.name, "geoCoverage":isp.get_geo_coverage(),
+                                        "peers": len(isp.get_peers()), "size":isp.get_node_size(), "span":isp.get_max_span(), "count":anomalyCnt})
                     except:
-                        print("ISP AS " + origin + " was not monitored!")
+                        logger.info("Unexpected error:" + str(sys.exc_info()[0]))
+                        logger.info("ISP AS " + origin + " was not monitored. The origin is with label: " +
+                              cur_anomaly_cnts[i]["label"])
                         continue
             elif "Net" in origin_type:
                 for i, origin in enumerate(origins):
                     netAS, lat, lon = origin.split(",")
-                    print("Processing network with AS: " + netAS + " and location at (" + lat + "," + lon + ")")
+                    # print("Processing network with AS: " + netAS + " and location at (" + lat + "," + lon + ")")
                     try:
                         isp = ISP.objects.get(ASNumber=netAS)
-                        print("Get ISP object with AS: " + netAS)
+                        # print("Get ISP object with AS: " + netAS)
                         net = Network.objects.get(isp=isp, latitude=lat, longitude=lon)
-                        print("Get network object with AS: " + netAS + " at (" + lat + "," + lon + ")")
+                        # print("Obtained network object with AS: " + netAS + " at (" + lat + "," + lon + ")")
                         azLatMn, azLatStd = get_lat_stat(net.latencies.filter(agent__agentType="azure"))
                         plLatMn, plLatStd = get_lat_stat(net.latencies.filter(agent__agentType="planetlab"))
 
                         anomalyCnt = cur_anomaly_cnts[i]["y"]
                         # print(anomalyCnt)
-                        scatter_origin_json[origin_type][severity].append(
-                            {"as": net.isp.ASNumber, "isp": net.isp.name, "name": net.__str__(), "city":net.city, "region":net.region,
-                             "country":net.country, "size": net.get_nodes_num(), "span":net.get_max_size(),
-                             "azMean":azLatMn, "azStd":azLatStd, "plMean":plLatMn, "plStd":plLatStd, "count":anomalyCnt})
+                        if anomalyCnt > 0:
+                            scatter_origin_json[origin_type][severity].append(
+                                {"as": net.isp.ASNumber, "isp": net.isp.name, "name": net.__str__(), "city":net.city, "region":net.region,
+                                 "country":net.country, "size": net.get_nodes_num(), "span":net.get_max_size(),
+                                 "azMean":azLatMn, "azStd":azLatStd, "plMean":plLatMn, "plStd":plLatStd, "count":anomalyCnt})
                     except:
-                        print("Network " + origin + " was not monitored!")
+                        logger.info("Unexpected error:" + str(sys.exc_info()[0]))
+                        logger.info("Network " + origin + " was not monitored. The origin is with label: " +
+                              cur_anomaly_cnts[i]["label"])
                         continue
             elif origin_type == "server":
                 for i, origin in enumerate(origins):
-                    print("Processing server with ip : " + origin)
+                    # print("Processing server with ip : " + origin)
                     try:
                         server = Server.objects.get(node__ip=origin)
+                        # print("Obtained server with ip : " + origin)
                         azLatMn, azLatStd = get_lat_stat(server.latencies.filter(agent__agentType="azure"))
                         plLatMn, plLatStd = get_lat_stat(server.latencies.filter(agent__agentType="planetlab"))
 
                         anomalyCnt = cur_anomaly_cnts[i]["y"]
                         #print(anomalyCnt)
-                        scatter_origin_json[origin_type][severity].append(
-                            {"ip": server.node.ip, "city": server.node.network.city, "region":server.node.network.region, "country":server.node.network.country,
-                              "azMean":azLatMn, "azStd":azLatStd, "plMean":plLatMn, "plStd":plLatStd, "count":anomalyCnt})
+                        if anomalyCnt > 0:
+                            scatter_origin_json[origin_type][severity].append(
+                                {"ip": server.node.ip, "city": server.node.network.city, "region":server.node.network.region, "country":server.node.network.country,
+                                  "azMean":azLatMn, "azStd":azLatStd, "plMean":plLatMn, "plStd":plLatStd, "count":anomalyCnt})
                     except:
-                        print("Server with IP " + origin + " was not monitored!")
+                        logger.info("Unexpected error:" + str(sys.exc_info()[0]))
+                        logger.info("Server with IP " + origin + " was not monitored. The origin is with label: " +
+                              cur_anomaly_cnts[i]["label"])
                         continue
             else:
                 continue

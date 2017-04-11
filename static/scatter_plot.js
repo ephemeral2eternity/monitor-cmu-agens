@@ -1,7 +1,6 @@
 /**
  * Created by Chen Wang on 4/10/2017.
  */
-
 function scatterISP(json_url) {
     $.getJSON(json_url, function (json) {
         var transitISPPeerData = preprocessISPData(json.transitISP, "peers");

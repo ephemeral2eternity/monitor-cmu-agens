@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+import logging
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -126,3 +127,37 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = (
 	os.path.join(BASE_DIR, "static"),
 )
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(message)s'
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple'
+        },
+        'logFile': {
+            'level':logging.INFO,
+            'class':'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'monitorINFO.log'),
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': logging.INFO,
+        },
+        'monitorTopology': {
+            'handlers': ['logFile', 'console'],
+            'level': logging.INFO,
+        },
+    }
+}
