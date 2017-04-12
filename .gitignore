@@ -179,4 +179,4 @@ migrations/
 .idea/workspace.xml
 
 ## Ignore database
-databackup
+databackup/*.json
