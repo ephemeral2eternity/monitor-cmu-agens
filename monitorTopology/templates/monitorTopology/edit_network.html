@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit Network</title>
+</head>
+<body>
+{% if network %}
+    <ul>
+        <li>Edit Network: {{ network.id }}</li>
+    </ul>
+    <form action="/edit_network?id={{ network.id }}" method="post">
+        <label for="isp">ISP Name:</label>
+        <input id="isp" type="text" name="isp" value="{{ network.isp.name }}"> <br>
+        <label for="asn">AS #:</label>
+        <input id="asn" type="number" name="asn" value="{{ network.isp.ASNumber }}"> <br>
+        <label for="type">Network Type:</label>
+        <input id="type" type="text" name="type" value="{{ network.isp.type }}"> <br>
+        <label for="latitude">Latitude:</label>
+        <input id="latitude" type="number" step="any" name="latitude" value="{{ network.latitude }}"> <br>
+        <label for="longitude">Longitude:</label>
+        <input id="longitude" type="number" step="any" name="longitude" value="{{ network.longitude }}"> <br>
+        <label for="city">City:</label>
+        <input id="city" type="text" name="city" value="{{ network.city }}"> <br>
+        <label for="region">Region:</label>
+        <input id="region" type="text" name="region" value="{{ network.region }}"> <br>
+        <label for="country">Country:</label>
+        <input id="country" type="text" name="country" value="{{ network.country }}"> <br>
+        <input type="submit" value="Submit">
+    </form>
+{% else %}
+    <p>No network information denoted by {{ network.id }}.</p>
+{% endif %}
+</body>
+</html>

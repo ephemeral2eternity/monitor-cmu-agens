@@ -33,6 +33,7 @@
 </head>
 <body>
 <h1>Show all ISPs monitored</h1>
+<h2>Total: {{ isps.count }}</h2>
 <form method="get">
 <input type="checkbox" onclick="toggle(this, 0)"/>Toggle Cloud ISPs
 <input type="checkbox" onclick="toggle(this, 1)"/>Toggle Transit ISPs

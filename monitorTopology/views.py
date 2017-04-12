@@ -99,6 +99,19 @@ def getISP(request):
     else:
         return HttpResponse("Please denote the AS # in http://monitor/get_isp?as=as_num!")
 
+# @description Delete 1 isp
+def deleteISP(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('as' in request_dict.keys()):
+        as_num = int(request_dict['as'][0])
+        isp = ISP.objects.get(ASNumber=as_num)
+        isp.delete()
+        return showISPs(request)
+    else:
+        return HttpResponse("Please denote the AS # in http://monitor/delete_isp?as=as_num!")
+
 # @description Get the details of one node by denoting its id  in the database
 def getNode(request):
     url = request.get_full_path()
@@ -125,6 +138,51 @@ def getNetwork(request):
         return HttpResponse(template.render({'network': network, 'edges':edges}, request))
     else:
         return showNetworks(request)
+
+@csrf_exempt
+def editNetwork(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()):
+        network_id = int(request_dict['id'][0])
+        network = Network.objects.get(id=network_id)
+        if request.method == "POST":
+            network_info = request.POST.dict()
+            # print(network_info)
+            try:
+                isp = ISP.objects.get(ASNumber=int(network_info['asn']))
+            except:
+                isp = ISP(ASNumber=int(network_info['asn']), name=network_info['isp'], type=network_info['type'])
+                isp.save()
+
+            try:
+                ## Merge the network to some existing network
+                new_network = Network.objects.get(isp=isp, latitude=network_info['latitude'], longitude=network_info['longitude'])
+            except:
+                ## Merge the existing network to a new network
+                new_network = Network(isp=isp, latitude=network_info['latitude'], longitude=network_info['longitude'])
+                new_network.save()
+
+
+            network = merge_networks(network, new_network)
+
+            network.city = network_info['city']
+            network.region = network_info['region']
+            network.country = network_info['country']
+            network.save()
+
+            if network not in isp.networks.distinct():
+                isp.networks.add(network)
+                isp.save()
+
+            template = loader.get_template('monitorTopology/network.html')
+            return HttpResponse(template.render({'network': network}, request))
+        else:
+            template = loader.get_template('monitorTopology/edit_network.html')
+            return HttpResponse(template.render({'network': network}, request))
+    else:
+        return HttpResponse("Wrong network id denoted!")
 
 # @description Get the specific link info
 def getLink(request):

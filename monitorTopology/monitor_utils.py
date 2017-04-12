@@ -2,6 +2,7 @@ from monitorTopology.models import Session, Node, Server, Agent, ISP, Network, E
 from monitorTopology.ipinfo import *
 from django.utils import timezone
 from django.db import transaction
+from django.db.models import Q
 from monitorTopology.azure_agents import *
 from monitorTopology.comm_utils import *
 from monitorTopology.lat_utils import *
@@ -385,6 +386,74 @@ def probe_servers():
             if cur_agent:
                 srvProbe = ServerProbing(server=srv, agent=cur_agent)
                 srvProbe.save()
+
+## @function merge_networks(network, new_network)
+#  @description: merge the network info to the new_network
+def merge_networks(network, new_network):
+    if new_network.id != network.id:
+        logger.info("Network id changes after revision")
+        all_net_edges = NetEdge.objects.filter(Q(srcNet=network) | Q(dstNet=network))
+        for net_edge in all_net_edges.distinct():
+            if net_edge.srcNet.id == network.id:
+                try:
+                    new_net_edge = NetEdge.objects.get(srcNet=new_network, dstNet=net_edge.dstNet)
+                except:
+                    new_net_edge = NetEdge(srcNet=new_network, dstNet=net_edge.dstNet)
+                    new_net_edge.save()
+            else:
+                try:
+                    new_net_edge = NetEdge.objects.get(srcNet=net_edge.srcNet, dstNet=new_network)
+                except:
+                    new_net_edge = NetEdge(srcNet=net_edge.srcNet, dstNet=new_network)
+                    new_net_edge.save()
+        logger.info("Finish updating all network edges")
+
+        if new_network.isp != network.isp:
+            all_isp_edges = PeeringEdge.objects.filter(Q(srcISP=network.isp)|Q(dstISP=network.isp))
+            for peering in all_isp_edges.distinct():
+                if peering.srcISP == network.isp:
+                    try:
+                        new_peering = PeeringEdge.objects.get(srcISP=new_network.isp, dstISP=peering.dstISP)
+                    except:
+                        new_peering = PeeringEdge(srcISP=new_network.isp, dstISP=peering.dstISP)
+                        new_peering.save()
+                else:
+                    try:
+                        new_peering = PeeringEdge.objects.get(srcISP=peering.srcISP, dstISP=new_network.isp)
+                    except:
+                        new_peering = PeeringEdge(srcISP=peering.srcISP, dstISP=new_network.isp)
+                        new_peering.save()
+        logger.info("Finish update all ISP peering relationships!")
+
+        ## Merge all fields when new_network is not the original network
+        for node in network.nodes.all().distinct():
+            if node not in new_network.nodes.all():
+                new_network.nodes.add(node)
+        logger.info("Finish merging nodes!")
+
+        ## Merge session
+        for session in network.related_sessions.all().distinct():
+            if session not in new_network.related_sessions.all():
+                preSubnets = Subnetwork.objects.filter(session=session, network=network).distinct()
+                for preNet in preSubnets:
+                    subnet = Subnetwork(session=session, network=new_network, netID=preNet.netID)
+                    subnet.save()
+                    preNet.delete()
+        logger.info("Finish merging sessions!")
+
+        ## Merge agents
+        for agent in network.agents.all():
+            if agent not in new_network.agents.all():
+                curNetProbing = NetProbing(network=new_network, agent=agent)
+                curNetProbing.save()
+        logger.info("Finish merging agents!")
+
+        preLats = list(network.latencies.all())
+        new_network.latencies.add(*preLats)
+
+        network.delete()
+    return new_network
+
 
 # @descr: Get the anomaly counts per origin type for histogram graphs
 def getQoEAnomaliesStats():

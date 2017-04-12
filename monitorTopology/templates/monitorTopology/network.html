@@ -44,6 +44,7 @@
             <li>City: {{ network.city }}</li>
             <li>Region: {{ network.region }}</li>
             <li>Country: {{ network.country }}</li>
+            <li><a href="/edit_network?id={{ network.id }}">Edit</a></li>
         </ul>
         {% else %}
             <p>No network information denoted by {{ networkID }}.</p>
