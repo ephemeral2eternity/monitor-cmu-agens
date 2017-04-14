@@ -47,7 +47,6 @@ def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
             node_network = Network(isp=node_isp, latitude=latitude_str, longitude=longitude_str, city=node_info["city"], region=node_info["region"], country=node_info["country"])
             node_network.save()
 
-
         if nodeName:
             node = Node(ip=node_ip, name=nodeName, type=nodeTyp, network=node_network)
         else:
@@ -426,9 +425,15 @@ def merge_networks(network, new_network):
         logger.info("Finish update all ISP peering relationships!")
 
         ## Merge all fields when new_network is not the original network
-        for node in network.nodes.all().distinct():
+        for node in network.nodes.distinct():
+            node.network = new_network
+            node.save()
             if node not in new_network.nodes.all():
                 new_network.nodes.add(node)
+
+        #for nd in new_network.nodes.all():
+        #    print(nd.__str__())
+        new_network.save()
         logger.info("Finish merging nodes!")
 
         ## Merge session
@@ -450,6 +455,9 @@ def merge_networks(network, new_network):
 
         preLats = list(network.latencies.all())
         new_network.latencies.add(*preLats)
+
+        # for lat in new_network.latencies.all():
+        #    print(lat.__str__())
 
         network.delete()
     return new_network
@@ -506,7 +514,7 @@ def getQoEAnomaliesStats():
             json.dump(all_origin_stats_dict, outFile, sort_keys=True, indent=4, ensure_ascii=True)
     return all_origin_stats_dict
 
-
+# @descr: Prepare the json data to scatter the # of QoE anomalies over various properties of ISP and networks.
 def get_scatter_origin_anomalies_json():
     logger.info("Running get_scatter_origin_anomalies_json")
     all_origin_stats_dict = getQoEAnomaliesStats()

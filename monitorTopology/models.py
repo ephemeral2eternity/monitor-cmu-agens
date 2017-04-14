@@ -280,3 +280,6 @@ class Latency(models.Model):
     agent = models.ForeignKey(Agent, default=None, null=True)
     latency = models.DecimalField(decimal_places=4, max_digits=10)
     timestamp = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.timestamp.strftime("%Y-%m-%d %H:%M:%S")) + ", " + str(self.latency)

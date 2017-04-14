@@ -164,20 +164,22 @@ def editNetwork(request):
                 new_network = Network(isp=isp, latitude=network_info['latitude'], longitude=network_info['longitude'])
                 new_network.save()
 
+            new_network = merge_networks(network, new_network)
 
-            network = merge_networks(network, new_network)
+            new_network.city = network_info['city']
+            new_network.region = network_info['region']
+            new_network.country = network_info['country']
+            new_network.save()
 
-            network.city = network_info['city']
-            network.region = network_info['region']
-            network.country = network_info['country']
-            network.save()
-
-            if network not in isp.networks.distinct():
-                isp.networks.add(network)
+            if new_network not in isp.networks.distinct():
+                isp.networks.add(new_network)
                 isp.save()
 
+            #for net in isp.networks.distinct():
+            #    print(net.__str__())
+
             template = loader.get_template('monitorTopology/network.html')
-            return HttpResponse(template.render({'network': network}, request))
+            return HttpResponse(template.render({'network': new_network}, request))
         else:
             template = loader.get_template('monitorTopology/edit_network.html')
             return HttpResponse(template.render({'network': network}, request))
@@ -393,7 +395,6 @@ def getAllISPsJson(request):
         all_isps.append({"as":isp.ASNumber, "isp":isp.name, "type":isp.type, "geoCoverage":isp.get_geo_coverage(), "span":isp.get_max_span(), "size":isp.get_node_size(), "peers":isp.get_peers()})
 
     return JsonResponse(all_isps, safe=False)
-
 
 # @description Get the peering links in json file of all isps denoted by their as numbers.
 # Prepare the data for function: getISPPeering
@@ -730,4 +731,3 @@ def scatterISP(request):
 def scatterNetworks(request):
     template = loader.get_template("monitorTopology/scatterNetworks.html")
     return HttpResponse(template.render({}, request))
-
