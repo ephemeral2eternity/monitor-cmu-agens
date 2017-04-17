@@ -125,8 +125,8 @@ def add_private_node(pre_node, nodeTyp="router"):
         if private_node not in cur_net.nodes.all():
             cur_net.nodes.add(private_node)
 
-        # update the link between "*" node and the closest given node.
-        update_edge(pre_node, private_node, 500)
+    # update the link between "*" node and the closest given node.
+    update_edge(pre_node, private_node, 500)
 
     #if private_node not in pre_node.network.nodes.all():
     #    pre_node.network.nodes.add(private_node)
