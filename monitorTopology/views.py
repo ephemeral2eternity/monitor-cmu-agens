@@ -223,6 +223,7 @@ def getLatencyJson(request):
     params = url.split('?')[1]
     request_dict = urllib.parse.parse_qs(params)
     latencies = []
+    objs = []
     latencies_obj = {}
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
         obj_typ = request_dict['type'][0]
@@ -233,22 +234,25 @@ def getLatencyJson(request):
         if obj_typ == "link":
             for obj_id in ids:
                 link = Edge.objects.get(id=obj_id)
-                for lat in link.latencies.all():
-                    tses.append(lat.timestamp)
-                    latencies.append({"x": lat.timestamp, "y": lat.latency, "group": link.__str__()})
-            latencies_obj = {"data": latencies, "type": "link"}
+                objs.append(link)
         else:
             for obj_id in ids:
                 if obj_typ == "network":
                     net = Network.objects.get(id=obj_id)
-                    for lat in net.latencies.all():
-                        tses.append(lat.timestamp)
-                        latencies.append({"x": lat.timestamp, "y": lat.latency, "group": net.__str__() + "+" + lat.agent.__str__()})
+                    objs.append(net)
                 else:
                     srv = Server.objects.get(id=obj_id)
-                    for lat in srv.latencies.all():
-                        tses.append(lat.timestamp)
-                        latencies.append({"x": lat.timestamp, "y": lat.latency, "group": srv.__str__() + "+" + lat.agent.__str__()})
+                    objs.append(srv)
+        for obj in objs:
+            for lat in obj.latencies.all():
+                tses.append(lat.timestamp)
+                if lat.latency >= 499:
+                    lat.latency = -20.0
+                    lat.save()
+                if obj_typ == "link":
+                    latencies.append({"x": lat.timestamp, "y": lat.latency, "group": obj.__str__()})
+                else:
+                    latencies.append({"x": lat.timestamp, "y": lat.latency, "group": obj.__str__() + "+" + lat.agent.__str__()})
 
         if len(tses) > 0:
             start_ts = min(tses)
