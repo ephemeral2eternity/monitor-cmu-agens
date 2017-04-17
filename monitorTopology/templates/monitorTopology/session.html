@@ -97,6 +97,33 @@
         </table>
         </div>
     <hr>
+    {% if edges %}
+        <div>
+            <h2>Show edges in the network</h2>
+            <table style="width:98%" border="1" align="center">
+                <tr>
+                    <td>Edge ID</td>
+                    <td>Source Node</td>
+                    <td>Source Node Network</td>
+                    <td>Source Node ISP</td>
+                    <td>Target Node</td>
+                    <td>Target Node Network</td>
+                    <td>Target Node ISP</td>
+                </tr>
+                {% for edge in edges.all %}
+                <tr>
+                    <td><a href="/get_link?id={{ edge.id }}">{{ edge.id }}</a></td>
+                    <td><a href="/get_node?id={{ edge.src.id }}"> {{ edge.src.name }} </a></td>
+                    <td><a href="/get_network?id={{ edge.src.network.id }}"> {{ edge.src.network.id }} </a></td>
+                    <td><a href="/get_isp?as={{ edge.src.network.isp.ASNumber}}"> {{ edge.src.network.isp }} </a></td>
+                    <td><a href="/get_node?id={{ edge.dst.id }}"> {{ edge.dst.name }} </a></td>
+                    <td><a href="/get_network?id={{ edge.dst.network.id }}"> {{ edge.dst.network.id }} </a></td>
+                    <td><a href="/get_isp?as={{ edge.dst.network.isp.ASNumber }}"> {{ edge.dst.network.isp }} </a></td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+    {% endif %}
 {% else %}
     <p>Please denote the session id in http://locator/diag/get_session?id=session_id.</p>
 {% endif %}

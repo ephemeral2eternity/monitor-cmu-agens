@@ -74,8 +74,9 @@ def getSession(request):
         session = Session.objects.get(id=session_id)
         hops = Hop.objects.filter(session=session)
         subnets = Subnetwork.objects.filter(session=session)
+        links = Edge.objects.filter(Q(src__in=session.route.distinct())&Q(dst__in=session.route.distinct()))
         template = loader.get_template('monitorTopology/session.html')
-        return HttpResponse(template.render({'session': session, 'hops': hops, 'subnets':subnets}, request))
+        return HttpResponse(template.render({'session': session, 'hops': hops, 'subnets':subnets, 'edges':links}, request))
     else:
         return showSessions(request)
 
