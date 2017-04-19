@@ -5,10 +5,10 @@ function include(arr,obj) {
     return (arr.indexOf(obj) != -1);
 }
 
-function drawLatencies(ids_str, obj_typ) {
+function drawLatencies(ids_str, obj_typ, agent_typ, divTag) {
     var ids = JSON.parse(("[" + ids_str+ "]"));
-    var container = document.getElementById('timecurve');
-    var url = "/get_latency_json?type=" + obj_typ;
+    var container = document.getElementById(divTag);
+    var url = "/get_latency_json?type=" + obj_typ + "&agent=" + agent_typ;
     for (var i=0; i<ids.length; i ++) {
         url = url + "&id=" + ids[i];
     }
@@ -43,6 +43,7 @@ function drawLatencies(ids_str, obj_typ) {
             start: json.start,
             end: json.end,
             legend: true,
+            defaultGroup: "",
             dataAxis: {left: {title: {text: "Latency (ms)"}}},
             width: '100%',
             height: '300px',

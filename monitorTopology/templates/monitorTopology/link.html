@@ -22,7 +22,7 @@
     <script type="text/javascript" src="/static/draw_updates.js"></script>
     <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
 </head>
-<body onload="drawLatencies({{ link.id }}, 'link')">
+<body onload="drawLatencies({{ link.id }}, 'link', 'All', 'timecurve')">
 {% if link %}
 <h1>Show details for a link {{ link }}</h1>
     <ul>

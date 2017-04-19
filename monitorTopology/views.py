@@ -74,9 +74,18 @@ def getSession(request):
         session = Session.objects.get(id=session_id)
         hops = Hop.objects.filter(session=session)
         subnets = Subnetwork.objects.filter(session=session)
-        links = Edge.objects.filter(Q(src__in=session.route.distinct())&Q(dst__in=session.route.distinct()))
+        links = Edge.objects.filter(Q(src__in=session.route.distinct())&Q(dst__in=session.route.distinct())).distinct()
+        link_ids = []
+        for link in links:
+            link_ids.append(str(link.id))
+        net_ids = []
+        for net in session.sub_networks.distinct():
+            net_ids.append(str(net.id))
+        link_ids_str = ",".join(link_ids)
+        net_ids_str = ",".join(net_ids)
         template = loader.get_template('monitorTopology/session.html')
-        return HttpResponse(template.render({'session': session, 'hops': hops, 'subnets':subnets, 'edges':links}, request))
+        return HttpResponse(template.render({'session': session, 'hops': hops, 'subnets':subnets, 'edges':links,
+                                             'link_ids_str':link_ids_str, 'net_ids_str':net_ids_str}, request))
     else:
         return showSessions(request)
 
@@ -225,8 +234,9 @@ def getLatencyJson(request):
     latencies = []
     objs = []
     latencies_obj = {}
-    if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
+    if ('id' in request_dict.keys()) and ('type' in request_dict.keys()) and ('agent' in request_dict.keys()):
         obj_typ = request_dict['type'][0]
+        agent = request_dict['agent'][0]
         ids = request_dict['id']
         tses = []
 
@@ -244,7 +254,11 @@ def getLatencyJson(request):
                     srv = Server.objects.get(id=obj_id)
                     objs.append(srv)
         for obj in objs:
-            for lat in obj.latencies.all():
+            if agent == "all":
+                all_latencies = obj.latencies.all()
+            else:
+                all_latencies = obj.latencies.filter(agent__agentType=agent)
+            for lat in all_latencies:
                 tses.append(lat.timestamp)
                 if lat.latency >= 499:
                     lat.latency = -20.0

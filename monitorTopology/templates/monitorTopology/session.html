@@ -37,6 +37,7 @@
     <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="/static/draw_networks.js"></script>
+    <script src="/static/draw_updates.js"></script>
 </head>
 {% if session %}
     <body onload="draw()">
@@ -97,6 +98,13 @@
         </table>
         </div>
     <hr>
+    <h2> Show latencies probed on all subnetworks of the session</h2>
+    <h3> Latencies probed by Azure agents</h3>
+    <div id="netAzLatencies"></div>
+    <hr>
+    <h3> Latencies probed by Planetlab agents</h3>
+    <div id="netPlLatencies"></div>
+    <hr>
     {% if edges %}
         <div>
             <h2>Show edges in the network</h2>
@@ -123,6 +131,9 @@
                 {% endfor %}
             </table>
         </div>
+        <hr>
+        <h2> Show latencies probed by traceroute for all links in the session </h2>
+        <div id="linkLatencies"></div>
     {% endif %}
 {% else %}
     <p>Please denote the session id in http://locator/diag/get_session?id=session_id.</p>
@@ -133,6 +144,12 @@
         var ids = [];
         ids.push(session_id);
         drawRouterGraph(ids);
+
+        var link_ids_str = "{{ link_ids_str }}";
+        var net_ids_str = "{{ net_ids_str }}";
+        drawLatencies(link_ids_str, "link", "all", "linkLatencies");
+        drawLatencies(net_ids_str, "network", "azure", "netAzLatencies");
+        drawLatencies(net_ids_str, "network", "planetlab", "netPlLatencies");
     }
 </script>
 </body>
