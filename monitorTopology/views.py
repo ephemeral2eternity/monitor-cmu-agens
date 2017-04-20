@@ -571,16 +571,14 @@ def getProbingIps(request):
         probe_networks()
         probe_servers()
 
-    ips = []
+    ips = {}
     for net in agent.networks.distinct():
-        net_ips = [node.ip for node in net.nodes.filter(type="router").exclude(ip="*").distinct()]
-        if net_ips:
-            ips.append(random.choice(net_ips))
+        ips["net_" + str(net.id)] = [node.ip for node in net.nodes.filter(Q(type="router")|Q(type="server")).exclude(ip="*").distinct()]
 
     for srv in agent.servers.distinct():
-        ips.append(srv.node.ip)
+        ips["server"] = srv.node.ip
 
-    return JsonResponse({"ips":ips}, safe=False)
+    return JsonResponse(ips, safe=False)
 
 
 # @description: Update all Subnetworks' hop count for all sessions going through
