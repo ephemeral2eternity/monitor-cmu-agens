@@ -260,9 +260,6 @@ def getLatencyJson(request):
                 all_latencies = obj.latencies.filter(agent__agentType=agent)
             for lat in all_latencies:
                 tses.append(lat.timestamp)
-                if lat.latency >= 499:
-                    lat.latency = -20.0
-                    lat.save()
                 if obj_typ == "link":
                     latencies.append({"x": lat.timestamp, "y": lat.latency, "group": obj.__str__()})
                 else:
@@ -573,10 +570,7 @@ def getProbingIps(request):
 
     ips = {}
     for net in agent.networks.distinct():
-        ips["net_" + str(net.id)] = [node.ip for node in net.nodes.filter(Q(type="router")|Q(type="server")).exclude(ip="*").distinct()]
-
-    for srv in agent.servers.distinct():
-        ips["server"] = srv.node.ip
+        ips["network_" + str(net.id)] = [node.ip for node in net.nodes.filter(type="router").exclude(ip="*").distinct()]
 
     return JsonResponse(ips, safe=False)
 
