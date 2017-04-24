@@ -32,9 +32,8 @@ def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
         try:
             node_isp = ISP.objects.get(ASNumber=node_info["AS"])
         except:
-            node_isp = ISP(ASNumber=node_info["AS"], name=node_info["ISP"])
-        node_isp.type = netTyp
-        node_isp.save()
+            node_isp = ISP(ASNumber=node_info["AS"], name=node_info["ISP"], type=netTyp)
+            node_isp.save()
 
         latitude = float(node_info['latitude'])
         latitude_str = '{0:.6f}'.format(latitude)
