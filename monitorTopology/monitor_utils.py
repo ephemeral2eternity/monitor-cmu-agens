@@ -26,6 +26,8 @@ logger = logging.getLogger(__package__)
 def add_node(node_ip, nodeTyp="router", nodeName=None, netTyp="transit"):
     try:
         node = Node.objects.get(ip=node_ip)
+        node.type = nodeTyp
+        node.save()
     except:
         node_info = get_node_info(node_ip)
 

@@ -675,7 +675,10 @@ def reportMonitoring(request):
         latency_info = json.loads(request.body.decode("utf-8"))
         ips = latency_info.keys()
         for ip in ips:
-            cur_node = Node.objects.get(ip=ip)
+            try:
+                cur_node = Node.objects.get(ip=ip)
+            except:
+                cur_node = add_node(ip)
             cur_lats = latency_info[ip]
             if cur_node.type == "server":
                 obj = Server.objects.get(node=cur_node)
