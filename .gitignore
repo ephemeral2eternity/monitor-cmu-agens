@@ -180,3 +180,4 @@ migrations/
 
 ## Ignore database
 databackup/*.json
+databackup/

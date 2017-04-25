@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import Q
+import json
 
 # Create your models here.
 # Node class defines a node that is either a router, or a client , or a server
@@ -46,7 +47,6 @@ class Agent(models.Model):
 
     def get_class_name(self):
         return "agent"
-
 
 class ISP(models.Model):
     ASNumber = models.IntegerField(primary_key=True)
@@ -289,3 +289,40 @@ class Latency(models.Model):
 
     def __str__(self):
         return str(self.timestamp.strftime("%Y-%m-%d %H:%M:%S")) + ", " + str(self.latency)
+
+class Anomaly(models.Model):
+    locator = models.CharField(max_length=100)
+    lid = models.IntegerField()
+    session_lid = models.IntegerField()
+    type = models.CharField(max_length=20)
+    session = models.ForeignKey(Session)
+    origins = models.ManyToManyField(Cause)
+    timestamp = models.DateTimeField()
+
+    def __str__(self):
+        return "{type: " + self.type + ", session:" + str(self.session.id) \
+               + ", session_lid: " + str(self.session_lid) + ", locator: " + self.locator + \
+               ", timestamp:" + str(self.timestamp.timestamp()) + "}"
+
+class Cause(models.Model):
+    obj_lid = models.IntegerField()
+    obj_mid = models.IntegerField(default=-1)
+    type = models.CharField(max_length=20)
+    data = models.CharField(max_length=500)
+    count = models.DecimalField()
+    
+    def get_cause_obj(self):
+        if self.type == "network":
+            try:
+                obj = Network.objects.get(id=self.obj_mid)
+            except:
+                obj = self.data
+        elif self.type == "server":
+            try:
+                obj = Server.objects.get(id=self.obj_mid)
+            except:
+                obj = self.data
+        else:
+            obj = self.data
+        return obj
+

@@ -463,7 +463,6 @@ def merge_networks(network, new_network):
         network.delete()
     return new_network
 
-
 # @descr: Get the anomaly counts per origin type for histogram graphs
 def getQoEAnomaliesStats():
     curfilePath = os.path.abspath(__file__)
