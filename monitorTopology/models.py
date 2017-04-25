@@ -229,6 +229,9 @@ class NetProbing(models.Model):
     def __str__(self):
         return self.agent.__str__() + " probing " + self.network.__str__()
 
+    class Meta:
+        unique_together = ["network", "agent"]
+
 # Define the pair of agent and network to denote which agent is probing which network.
 class ServerProbing(models.Model):
     server = models.ForeignKey(Server)
@@ -236,6 +239,9 @@ class ServerProbing(models.Model):
 
     def __str__(self):
         return self.agent.__str__() + " probing " + self.server.__str__()
+
+    class Meta:
+        unique_together = ["server", "agent"]
 
 # Define the edge between two nodes.
 class Edge(models.Model):

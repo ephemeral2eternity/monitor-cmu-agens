@@ -614,6 +614,7 @@ def updateServers(request):
 
 # @description: Update the agent objects for all client nodes
 def updateAgents(request):
+    Agent.objects.all().delete()
     init_azure_nodes()
     client_nodes = Node.objects.filter(type="client").all()
 
