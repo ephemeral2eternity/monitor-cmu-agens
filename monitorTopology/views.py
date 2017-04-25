@@ -260,6 +260,10 @@ def getLatencyJson(request):
                 all_latencies = obj.latencies.filter(agent__agentType=agent)
             for lat in all_latencies:
                 tses.append(lat.timestamp)
+                if lat.latency > 450:
+                    lat.latency = -20
+                    lat.save()
+
                 if obj_typ == "link":
                     latencies.append({"x": lat.timestamp, "y": lat.latency, "group": obj.__str__()})
                 else:
