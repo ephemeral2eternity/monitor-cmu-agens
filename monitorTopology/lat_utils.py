@@ -11,7 +11,7 @@ def get_lat_stat(latencies):
     lat_list = []
     for lat in latencies.all().order_by('-timestamp'):
         cur_lat = float(lat.latency)
-        if cur_lat < 5000:
+        if cur_lat < 500:
             lat_list.append(float(lat.latency))
 
     if len(lat_list) > 0:
