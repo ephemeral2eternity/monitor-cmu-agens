@@ -113,7 +113,7 @@
     function draw(){
         var network_id = {{ network.id|safe }};
         drawNetwork(network_id);
-        drawLatencies(network_id, "network", "All", "timecurve");
+        drawLatencies(network_id, "network", "all", "timecurve");
         var net_size = {{ network.get_network_size|safe }};
         var str_to_write = "<table>";
         str_to_write += "<tr><td>The session id</td><td>The span of hops</td></tr>";
