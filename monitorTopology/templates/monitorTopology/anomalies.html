@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Anomalies</title>
+</head>
+<body>
+<h1>Total anomalies : {{ anomalies.count }} </h1>
+<ul>
+    <li>Severe anomalies: {{ severe }}</li>
+    <li>Medium anomalies: {{ medium }}</li>
+    <li>Light anomalies: {{ light }}</li>
+</ul>
+{% if anomalies %}
+<table style="width:100%">
+    <tr>
+        <td>Anomaly ID</td>
+        <td>Anomaly Locator</td>
+        <td>Anomaly ID on Locator</td>
+        <td>Anomaly Type</td>
+        <td>Anomalous Session ID on Locator</td>
+        <td>Session on Monitor</td>
+        <td>Diagnosis time (seconds)</td>
+        <td>Anomaly Timestamp</td>
+    </tr>
+    {% for anomaly in anomalies %}
+    <tr>
+        <td><a href="/get_anomaly?id={{ anomaly.id }}"> {{ anomaly.id }} </a></td>
+        <td><a href="http://{{ anomaly.locator }}.cmu-agens.com/diag/"> {{ anomaly.locator }} </a></td>
+        <td><a href="http://{{ anomaly.locator }}.cmu-agens.com/diag/get_anomaly?id={{ anomaly.lid }}"> {{ anomaly.lid }} </a></td>
+        <td> {{ anomaly.type }} </td>
+        <td><a href="http://{{ anomaly.locator }}.cmu-agens.com/diag/get_session?id={{ anomaly.session_lid }}"> Session {{ anomaly.session_lid }} </a></td>
+        <td><a href="/get_session?id={{ anomaly.session.id }}"> {{ anomaly.session }} </a></td>
+        <td> {{ anomaly.timeToDiagnose }}</td>
+        <td> {{ anomaly.timestamp }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+    <p>No anomalies have been detected.</p>
+{% endif %}
+</body>
+</html>

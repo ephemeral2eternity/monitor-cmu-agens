@@ -296,8 +296,8 @@ class Anomaly(models.Model):
     session_lid = models.IntegerField()
     type = models.CharField(max_length=20)
     session = models.ForeignKey(Session)
-    origins = models.ManyToManyField(Cause)
-    timeToDiagnose = models.DecimalField()
+    origins = models.ManyToManyField('Cause')
+    timeToDiagnose = models.DecimalField(max_digits=10, decimal_places=5)
     timestamp = models.DateTimeField()
 
     def __str__(self):
@@ -310,7 +310,7 @@ class Cause(models.Model):
     obj_mid = models.IntegerField(default=-1)
     type = models.CharField(max_length=20)
     data = models.CharField(max_length=500)
-    count = models.DecimalField()
+    count = models.DecimalField(max_digits=5, decimal_places=4)
     
     def get_cause_obj(self):
         if self.type == "network":

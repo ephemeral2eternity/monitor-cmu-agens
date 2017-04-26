@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Details of a QoE anomaly</title>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="http://visjs.org/dist/vis.js"></script>
+    <link href="http://visjs.org/dist/vis.min.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="/static/draw_updates.js"></script>
+</head>
+<body onload="draw()">
+<h1>Details</h1>
+<ul>
+    <li>Cloud agent: <a href="http://{{ anomaly.locator }}.cmu-agens.com/diag/">{{ anomaly.locator }}</a></li>
+    <li>Session: {{ anomaly.session }}</li>
+    <li>Timestamp: {{ anomaly.timestamp }}</li>
+</ul>
+<h2>Session QoE during anomaly period</h2>
+<div id="sessionQoE"></div>
+</body>
+<script type="text/javascript">
+function draw(){
+    var locator="{{ anomaly.locator|safe }}";
+    console.log(locator);
+    var ids_str="{{ anomaly.session_lid }}";
+    console.log(ids_str);
+    var anomaly_id="{{ anomaly.lid }}";
+    console.log(anomaly_id);
+    drawUpdates(locator, "session", ids_str, anomaly_id, "sessionQoE");
+    //drawLatencies(network_id, "network", "all", "timecurve");
+}
+</script>
+</html>

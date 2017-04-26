@@ -1,12 +1,16 @@
 import requests
 import datetime
 import json
+import sys
 import pytz
 from monitorTopology.azure_agents import *
 from monitorTopology.models import Anomaly, Cause, Session, Network, Server
 
-def get_qoe_anomalies(locator_ip):
-    url = "http://%s/diag/get_all_anomalies_json" % locator_ip
+def get_qoe_anomalies(locator_ip, ts=None):
+    if ts:
+        url = "http://%s/diag/get_all_anomalies_json?ts=%s" % (locator_ip, ts)
+    else:
+        url = "http://%s/diag/get_all_anomalies_json" % locator_ip
     try:
         rsp = requests.get(url)
         return rsp.json()
@@ -22,10 +26,15 @@ def get_all_qoe_anomalies():
         locator_ip = locator["ip"]
         locator_name = locator["name"]
         print("Getting QoE anomalies from locator: " + locator_name)
-        qoe_anomalies = get_qoe_anomalies(locator_ip)
+        if Anomaly.objects.filter(locator=locator_name).count() > 0:
+            ts = Anomaly.objects.filter(locator=locator_name).latest(field_name="timestamp").timestamp.timestamp()
+            qoe_anomalies = get_qoe_anomalies(locator_ip, ts)
+        else:
+            qoe_anomalies = get_qoe_anomalies(locator_ip)
         all_anomalies.extend(qoe_anomalies)
     return all_anomalies
 
+## Cache all data obtained to database
 def cache_all_qoe_anomalies():
     all_anomalies = get_all_qoe_anomalies()
     for anomaly_dict in all_anomalies:
@@ -35,10 +44,13 @@ def cache_all_qoe_anomalies():
         try:
             anomaly_dt = datetime.datetime.utcfromtimestamp(float(ts)).replace(tzinfo=pytz.utc)
             anomalous_session = Session.objects.get(client__ip=client, server__ip=server)
+            # print(anomalous_session.__str__())
             anomaly = Anomaly(locator=anomaly_dict["locator"],
                               lid=int(anomaly_dict["lid"]), session_lid=int(anomaly_dict["session_lid"]),
                               type=anomaly_dict["type"], session=anomalous_session,
                               timeToDiagnose=anomaly_dict["timeToDiagnose"], timestamp=anomaly_dt)
+            anomaly.save()
+            print(anomaly_dict)
             for cause_dict in anomaly_dict["causes"]:
                 cause_origin_type = cause_dict["type"]
                 obj_mid = -1
@@ -63,8 +75,15 @@ def cache_all_qoe_anomalies():
                 cause.save()
                 anomaly.origins.add(cause)
             anomaly.save()
+        except ValueError as e:
+            print(e.__str__())
+            continue
+        except TypeError as e:
+            print(e.__str__())
+            continue
         except:
-            print("Cannot cache anomaly with client " + client + " server " + server + " as no database record for the session found!")
+            # print("Cannot cache anomaly with client " + client + " server " + server + " as no database record for the session found!")
+            print("Unexpected error:", sys.exc_info()[0])
             print(anomaly_dict)
             continue
 

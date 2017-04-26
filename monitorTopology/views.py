@@ -750,3 +750,27 @@ def scatterISP(request):
 def scatterNetworks(request):
     template = loader.get_template("monitorTopology/scatterNetworks.html")
     return HttpResponse(template.render({}, request))
+
+def showAllAnomalies(request):
+    anomalies = Anomaly.objects.all()
+    severe_cnt = anomalies.filter(type="severe").count()
+    medium_cnt = anomalies.filter(type="medium").count()
+    light_cnt = anomalies.filter(type="light").count()
+    template = loader.get_template("monitorTopology/anomalies.html")
+    return HttpResponse(template.render({'anomalies': anomalies, "severe":severe_cnt, "medium":medium_cnt, "light":light_cnt}, request))
+
+def getAnomaly(request):
+    url = request.get_full_path()
+    if '?' in url:
+        params = url.split('?')[1]
+        request_dict = urllib.parse.parse_qs(params)
+        anomaly_id = request_dict['id'][0]
+        anomaly = Anomaly.objects.get(id=anomaly_id)
+        template = loader.get_template("monitorTopology/anomaly.html")
+        return HttpResponse(template.render({'anomaly': anomaly},request))
+    else:
+        return HttpResponse("Please specify anomaly id when calling http://monitor/get_anomaly?id=anomaly_id")
+
+def cacheAllAnomalies(request):
+    cache_all_qoe_anomalies()
+    return showAllAnomalies(request)

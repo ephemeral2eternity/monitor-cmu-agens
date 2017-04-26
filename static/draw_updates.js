@@ -53,12 +53,13 @@ function drawLatencies(ids_str, obj_typ, agent_typ, divTag) {
     });
 }
 
-function drawUpdates(obj_type, node_ids_str, anomaly_id) {
-    var node_ids = JSON.parse(("[" + node_ids_str+ "]"));
-    var container = document.getElementById('timecurve');
-    var url = "/diag/get_updates_json?type=" + obj_type;
-    for (var i=0; i<node_ids.length; i ++) {
-        url = url + "&id=" + node_ids[i];
+function drawUpdates(locator, obj_type, ids_str, anomaly_id, divTag) {
+    console.log(ids_str);
+    var ids = JSON.parse(("[" + ids_str+ "]"));
+    var container = document.getElementById(divTag);
+    var url = "http://" + locator + ".cmu-agens.com/diag/get_updates_json?type=" + obj_type;
+    for (var i=0; i<ids.length; i ++) {
+        url = url + "&id=" + ids[i];
     }
 
     if (anomaly_id !== undefined) {
