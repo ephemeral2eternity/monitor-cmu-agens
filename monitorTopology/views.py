@@ -234,17 +234,28 @@ def getLatencyJson(request):
     latencies = []
     objs = []
     latencies_obj = {}
+    tsExists = False
     if ('id' in request_dict.keys()) and ('type' in request_dict.keys()) and ('agent' in request_dict.keys()):
         obj_typ = request_dict['type'][0]
         agent = request_dict['agent'][0]
         ids = request_dict['id']
         tses = []
 
+        if 'ts' in request_dict.keys():
+            tsExists = True
+            center_ts = float(request_dict['ts'][0])
+            center_dt = datetime.datetime.utcfromtimestamp(center_ts).replace(tzinfo=pytz.utc)
+
         ## The obj_typ can be "link", "network" and "server"
         if obj_typ == "link":
             for obj_id in ids:
                 link = Edge.objects.get(id=obj_id)
                 objs.append(link)
+        elif obj_typ == "session":
+            for obj_id in ids:
+                session = Session.objects.get(id=obj_id)
+                session_links = Edge.objects.filter(Q(src__in=session.route.distinct())&Q(dst__in=session.route.distinct()))
+                objs.extend(session_links)
         else:
             for obj_id in ids:
                 if obj_typ == "network":
@@ -264,17 +275,20 @@ def getLatencyJson(request):
                     lat.latency = -20
                     lat.save()
 
-                if obj_typ == "link":
+                if (obj_typ == "link") or (obj_typ == "session"):
                     latencies.append({"x": lat.timestamp, "y": lat.latency, "group": obj.__str__()})
                 else:
                     latencies.append({"x": lat.timestamp, "y": lat.latency, "group": obj.__str__() + "+" + lat.agent.__str__()})
 
-        if len(tses) > 0:
+        if tsExists:
+            start_ts = center_dt - datetime.timedelta(minutes=5)
+            end_ts = center_dt + datetime.timedelta(minutes=5)
+        elif len(tses) > 0:
             start_ts = min(tses)
             end_ts = max(tses)
         else:
-            start_ts = time.time() - 600
-            end_ts = time.time()
+            end_ts = timezone.now()
+            start_ts = end_ts - datetime.timedelta(minutes=5)
         latencies_obj = {"data": latencies, "start": start_ts, "end": end_ts}
 
         return JsonResponse(latencies_obj)
@@ -766,8 +780,9 @@ def getAnomaly(request):
         request_dict = urllib.parse.parse_qs(params)
         anomaly_id = request_dict['id'][0]
         anomaly = Anomaly.objects.get(id=anomaly_id)
+        hops = Hop.objects.filter(session=anomaly.session)
         template = loader.get_template("monitorTopology/anomaly.html")
-        return HttpResponse(template.render({'anomaly': anomaly},request))
+        return HttpResponse(template.render({'anomaly': anomaly, 'hops':hops},request))
     else:
         return HttpResponse("Please specify anomaly id when calling http://monitor/get_anomaly?id=anomaly_id")
 

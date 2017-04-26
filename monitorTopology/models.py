@@ -305,6 +305,9 @@ class Anomaly(models.Model):
                + ", session_lid: " + str(self.session_lid) + ", locator: " + self.locator + \
                ", timestamp:" + str(self.timestamp.timestamp()) + "}"
 
+    def get_ts(self):
+        return str(self.timestamp.timestamp())
+
 class Cause(models.Model):
     obj_lid = models.IntegerField()
     obj_mid = models.IntegerField(default=-1)

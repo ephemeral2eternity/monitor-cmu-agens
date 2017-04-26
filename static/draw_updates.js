@@ -5,10 +5,14 @@ function include(arr,obj) {
     return (arr.indexOf(obj) != -1);
 }
 
-function drawLatencies(ids_str, obj_typ, agent_typ, divTag) {
+function drawLatencies(ids_str, obj_typ, agent_typ, divTag, anomalyTS) {
     var ids = JSON.parse(("[" + ids_str+ "]"));
     var container = document.getElementById(divTag);
     var url = "/get_latency_json?type=" + obj_typ + "&agent=" + agent_typ;
+    if (anomalyTS) {
+        url = url + "&ts=" + anomalyTS;
+    }
+
     for (var i=0; i<ids.length; i ++) {
         url = url + "&id=" + ids[i];
     }
