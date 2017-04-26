@@ -297,6 +297,7 @@ class Anomaly(models.Model):
     type = models.CharField(max_length=20)
     session = models.ForeignKey(Session)
     origins = models.ManyToManyField(Cause)
+    timeToDiagnose = models.DecimalField()
     timestamp = models.DateTimeField()
 
     def __str__(self):
@@ -325,4 +326,3 @@ class Cause(models.Model):
         else:
             obj = self.data
         return obj
-
