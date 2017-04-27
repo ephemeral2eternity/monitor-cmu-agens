@@ -781,8 +781,20 @@ def getAnomaly(request):
         anomaly_id = request_dict['id'][0]
         anomaly = Anomaly.objects.get(id=anomaly_id)
         hops = Hop.objects.filter(session=anomaly.session)
+        links = Edge.objects.filter(
+            Q(src__in=anomaly.session.route.distinct()) & Q(dst__in=anomaly.session.route.distinct())).distinct()
+        link_ids = []
+        for link in links:
+            link_ids.append(str(link.id))
+        net_ids = []
+        for net in anomaly.session.sub_networks.distinct():
+            net_ids.append(str(net.id))
+        link_ids_str = ",".join(link_ids)
+        net_ids_str = ",".join(net_ids)
+
         template = loader.get_template("monitorTopology/anomaly.html")
-        return HttpResponse(template.render({'anomaly': anomaly, 'hops':hops},request))
+        return HttpResponse(template.render({'anomaly': anomaly, 'hops':hops,
+                                             'link_ids_str':link_ids_str, 'net_ids_str': net_ids_str},request))
     else:
         return HttpResponse("Please specify anomaly id when calling http://monitor/get_anomaly?id=anomaly_id")
 

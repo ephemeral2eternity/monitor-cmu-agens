@@ -34,14 +34,16 @@
     </style>
 </head>
 <body onload="draw()">
-<h1>Details</h1>
+<h1>Anomaly Details</h1>
+<h3>
 <ul>
-    <li>Cloud agent: <a href="http://{{ anomaly.locator }}.cmu-agens.com/diag/">{{ anomaly.locator }}</a></li>
+    <li>Cloud agent: <a href="http://{{ anomaly.locator }}.cmu-agens.com/diag/get_anomaly?id={{ anomaly.lid }}">{{ anomaly.locator }}</a></li>
     <li>Session: <a href="/get_session?id={{ anomaly.session.id }}"> {{ anomaly.session }}</a></li>
     <li>Type: {{ anomaly.type }}</li>
     <li>Time to diagnose: {{ anomaly.timeToDiagnose }} seconds</li>
     <li>Timestamp: {{ anomaly.timestamp }}</li>
 </ul>
+</h3>
 <h2>Localization graph for the QoE anomaly</h2>
 <div class="row" align="center">
     <div id="localization"></div>
@@ -70,9 +72,31 @@
 <h2>Session QoE during anomaly period</h2>
 <div id="sessionQoE"></div>
 <h2>Top causes</h2>
-{% for cause in anomaly.causes %}
-
+<table style="width:100%">
+    <tr>
+        <td align="center">Cause Type</td>
+        <td align="center">Cause Origin ID on locator</td>
+        <td align="center">Cause Origin ID on monitor</td>
+        <td align="center">Cause Details</td>
+        <td align="center">Cause weight</td>
+    </tr>
+{% for cause in anomaly.causes.all %}
+    <tr>
+        <td align="center">{{ cause.type }}</td>
+        <td align="center"><a href="http://{{ anomaly.locator }}.cmu-agens.com/diag/get_{{ cause.type }}?id={{ cause.obj_lid }}">{{ cause.obj_lid }}</a></td>
+        <td align="center"><a href="/get_{{ cause.type }}?id={{ cause.obj_mid }}"> {{ cause.obj_mid }}</a></td>
+        <td align="center">{{ cause.data }}</td>
+        <td align="center">{{ cause.count }}</td>
+    </tr>
 {% endfor %}
+</table>
+<hr>
+<h2> Show latencies probed on all subnetworks of the session</h2>
+<h3> Latencies probed by Azure agents</h3>
+<div id="netAzLatencies"></div>
+<hr>
+<h3> Latencies probed by Planetlab agents</h3>
+<div id="netPlLatencies"></div>
 <hr>
 <h2>Session Link Latencies</h2>
 <div id="linkLatencies"></div>
@@ -84,10 +108,14 @@ function draw(){
     var anomaly_id="{{ anomaly.lid }}";
     var session_id = "{{ anomaly.session.id }}";
     var anomaly_ts = "{{ anomaly.get_ts }}";
+    var link_ids_str = "{{ link_ids_str }}";
+    var net_ids_str = "{{ net_ids_str }}";
     drawUpdates(locator, "session", ids_str, anomaly_id, "sessionQoE");
     //drawLatencies(network_id, "network", "all", "timecurve");
     drawLocalization(locator, anomaly_id, "localization");
-    drawLatencies(session_id, "session", "all", "linkLatencies", anomaly_ts);
+    drawLatencies(link_ids_str, "link", "all", "linkLatencies", anomaly_ts);
+    drawLatencies(net_ids_str, "network", "azure", "netAzLatencies", anomaly_ts);
+    drawLatencies(net_ids_str, "network", "planetlab", "netPlLatencies", anomaly_ts);
 }
 </script>
 </html>

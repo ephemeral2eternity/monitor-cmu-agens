@@ -43,14 +43,22 @@ function drawLatencies(ids_str, obj_typ, agent_typ, divTag, anomalyTS) {
         console.log(groups);
 
         var dataset = new vis.DataSet(items);
+        var graphHeight;
+        if (obj_typ === "link") {
+            graphHeight = "600px";
+        }
+        else {
+            graphHeight = "300px";
+        }
+
         var options = {
             start: json.start,
             end: json.end,
-            legend: true,
+            legend: {left:{position:"top-right"}},
             defaultGroup: "",
             dataAxis: {left: {title: {text: "Latency (ms)"}}},
             width: '100%',
-            height: '300px',
+            height: graphHeight,
             style: 'line'
         };
         var Graph2d = new vis.Graph2d(container, dataset, groups, options);
