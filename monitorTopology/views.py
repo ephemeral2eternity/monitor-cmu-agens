@@ -765,6 +765,7 @@ def scatterNetworks(request):
     template = loader.get_template("monitorTopology/scatterNetworks.html")
     return HttpResponse(template.render({}, request))
 
+# @description Show details of all anomalies in table
 def showAllAnomalies(request):
     anomalies = Anomaly.objects.all()
     severe_cnt = anomalies.filter(type="severe").count()
@@ -772,6 +773,11 @@ def showAllAnomalies(request):
     light_cnt = anomalies.filter(type="light").count()
     template = loader.get_template("monitorTopology/anomalies.html")
     return HttpResponse(template.render({'anomalies': anomalies, "severe":severe_cnt, "medium":medium_cnt, "light":light_cnt}, request))
+
+# @description Delete all anomalies in the database
+def delAllAnomalies(request):
+    anomalies = Anomaly.objects.all().delete()
+    return HttpResponse("Successfully empty the anomaly database!")
 
 def getAnomaly(request):
     url = request.get_full_path()

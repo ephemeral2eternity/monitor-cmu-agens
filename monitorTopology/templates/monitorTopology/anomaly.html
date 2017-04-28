@@ -80,7 +80,7 @@
         <td align="center">Cause Details</td>
         <td align="center">Cause weight</td>
     </tr>
-{% for cause in anomaly.causes.all %}
+{% for cause in anomaly.origins.all %}
     <tr>
         <td align="center">{{ cause.type }}</td>
         <td align="center"><a href="http://{{ anomaly.locator }}.cmu-agens.com/diag/get_{{ cause.type }}?id={{ cause.obj_lid }}">{{ cause.obj_lid }}</a></td>

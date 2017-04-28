@@ -50,8 +50,9 @@ def cache_all_qoe_anomalies():
                               type=anomaly_dict["type"], session=anomalous_session,
                               timeToDiagnose=anomaly_dict["timeToDiagnose"], timestamp=anomaly_dt)
             anomaly.save()
-            print(anomaly_dict)
+            # print(anomaly_dict)
             for cause_dict in anomaly_dict["causes"]:
+                print(cause_dict)
                 cause_origin_type = cause_dict["type"]
                 obj_mid = -1
                 if cause_origin_type == "network":
@@ -70,6 +71,7 @@ def cache_all_qoe_anomalies():
                     except:
                         print("No server with ip: " + cause_dict["ip"] + " found in monitor database")
 
+                print("Saving cause_dict!")
                 cause = Cause(type=cause_dict["type"], obj_lid=cause_dict["lid"], obj_mid=obj_mid,
                               count=cause_dict["count"], data=json.dumps(cause_dict, indent=4))
                 cause.save()

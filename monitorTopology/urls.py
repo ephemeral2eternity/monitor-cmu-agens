@@ -44,6 +44,7 @@ urlpatterns = [
     url(r'^stat_net_lat', views.statNetLat, name='statNetLat'),
     url(r'^cache_all_anomalies', views.cacheAllAnomalies, name='cacheAllAnomalies'),
     url(r'^show_anomalies', views.showAllAnomalies, name='showAllAnomalies'),
+    url(r'^del_anomalies', views.delAllAnomalies, name='delAllAnomalies'),
     url(r'^get_anomaly', views.getAnomaly, name='getAnomaly'),
     url(r'^stat_qoe_anomalies_json', views.statQoEAnomaliesJson, name='statQoEAnomaliesJson'),
     url(r'^scatter_origin_anomalies_json', views.scatterOriginAnomalisJson, name='scatterOriginAnomalisJson'),
