@@ -463,28 +463,6 @@ def merge_networks(network, new_network):
         network.delete()
     return new_network
 
-# @descr: Get the anomaly counts per origin type for histogram graphs
-def getAnomaliesPerSessions():
-    anomalies = Anomaly.objects.all()
-
-    sessions_anomalies = {}
-    for anomaly in anomalies:
-        session_id = anomaly.session.id
-        if session_id not in sessions_anomalies.keys():
-            sessions_anomalies[session_id] = {"light":0, "medium":0, "severe":0}
-
-        sessions_anomalies[session_id][anomaly.type] += 1
-
-    anomaly_session_status = {"session":[], "severe":[], "medium":[], "light":[]}
-
-    for session_id in sorted(sessions_anomalies.keys(), key=int):
-        anomaly_session_status["session"].append(session_id)
-        anomaly_session_status["severe"].append(sessions_anomalies[session_id]["severe"])
-        anomaly_session_status["medium"].append(sessions_anomalies[session_id]["medium"])
-        anomaly_session_status["light"].append(sessions_anomalies[session_id]["light"])
-
-    return anomaly_session_status
-
 # @descr: Prepare the json data to scatter the # of QoE anomalies over various properties of ISP and networks.
 def get_scatter_origin_anomalies_json():
     logger.info("Running get_scatter_origin_anomalies_json")

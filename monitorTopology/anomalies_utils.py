@@ -97,6 +97,66 @@ def get_anomalous_sesssions(anomalies):
 
     return anomalous_sessions
 
+
+# @descr: Get the anomaly counts per origin type for histogram graphs
+def getAnomaliesPerSessions():
+    anomalies = Anomaly.objects.all()
+
+    sessions_anomalies = {}
+    for anomaly in anomalies:
+        session_id = anomaly.session.id
+        if session_id not in sessions_anomalies.keys():
+            sessions_anomalies[session_id] = {"light":0, "medium":0, "severe":0}
+
+        sessions_anomalies[session_id][anomaly.type] += 1
+
+    anomaly_session_status = {"session":[], "severe":[], "medium":[], "light":[]}
+
+    for session_id in sorted(sessions_anomalies.keys(), key=int):
+        anomaly_session_status["session"].append(session_id)
+        anomaly_session_status["severe"].append(sessions_anomalies[session_id]["severe"])
+        anomaly_session_status["medium"].append(sessions_anomalies[session_id]["medium"])
+        anomaly_session_status["light"].append(sessions_anomalies[session_id]["light"])
+
+    return anomaly_session_status
+
+# @descr: Get the anomaly counts per ISP in different types
+def getAnomaliesPerISPs():
+    anomalies = Anomaly.objects.all()
+
+    isp_anomalies = {
+        "cloud":{},
+        "transit":{},
+        "access":{}
+    }
+
+    net_anomalies = {
+        "cloud":{},
+        "transit":{},
+        "access":{}
+    }
+
+    node_anomalies = {
+        "server":{},
+        "client":{}
+    }
+
+    for anomaly in anomalies:
+        for origin in anomaly.origins.all():
+            if origin.type == "server":
+                srv = origin.get_cause_obj()
+
+            if origin.type == "device":
+                client = anomaly.session.client
+
+            if origin.type == "network":
+                net = origin.get_cause_obj()
+                # if
+
+    anomalies_per_isps = {}
+    return anomalies_per_isps
+
+
 if __name__ == '__main__':
     #locator_ip = "13.93.223.198"
     #qoe_anomalies = get_qoe_anomalies(locator_ip)
