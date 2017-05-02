@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db import transaction
 from django.db.models import Q
 from monitorTopology.azure_agents import *
-from monitorTopology.comm_utils import *
+from monitorTopology.anomalies_utils import *
 from monitorTopology.lat_utils import *
 import math
 import sys
@@ -464,69 +464,32 @@ def merge_networks(network, new_network):
     return new_network
 
 # @descr: Get the anomaly counts per origin type for histogram graphs
-def getQoEAnomaliesStats():
-    curfilePath = os.path.abspath(__file__)
-    curDir = os.path.abspath(os.path.join(curfilePath, os.pardir))  # this will return current directory in which python file resides.
-    parentDir = os.path.abspath(os.path.join(curDir, os.pardir))  # this will return parent directory.
-    outputJsonName = "anomaly_stats_" + time.strftime("%m%d") + ".json"
+def getAnomaliesPerSessions():
+    anomalies = Anomaly.objects.all()
 
-    if os.path.exists(parentDir + "/databackup/" + outputJsonName):
-        with open(parentDir + "/databackup/" + outputJsonName) as json_data:
-            all_origin_stats_dict = json.load(json_data)
-            return all_origin_stats_dict
+    sessions_anomalies = {}
+    for anomaly in anomalies:
+        session_id = anomaly.session.id
+        if session_id not in sessions_anomalies.keys():
+            sessions_anomalies[session_id] = {"light":0, "medium":0, "severe":0}
 
-    all_qoe_anomalies = get_all_qoe_anomalies()
-    all_origin_stats_dict = {}
-    for origin_type in all_qoe_anomalies.keys():
-        cur_anomalies = all_qoe_anomalies[origin_type]
-        top_origins = sorted(cur_anomalies.keys())
-        origin_stats_dict = {
-            "origin": top_origins,
-            "light": [],
-            "medium": [],
-            "severe": [],
-            "total": []
-        }
+        sessions_anomalies[session_id][anomaly.type] += 1
 
-        for origin in top_origins:
-            anomaly_pts = cur_anomalies[origin]
-            cur_obj = {
-                "light": {"y": 0, "label": ""},
-                "medium": {"y": 0, "label": ""},
-                "severe": {"y": 0, "label": ""},
-                "total": {"y": 0, "label": ""}
-            }
+    anomaly_session_status = {"session":[], "severe":[], "medium":[], "light":[]}
 
-            for anomaly_pt in anomaly_pts:
-                cur_obj[anomaly_pt["type"]]["y"] += anomaly_pt["count"]
-                cur_obj["total"]["y"] += anomaly_pt["count"]
-                cur_obj[anomaly_pt["type"]]["label"] += str(anomaly_pt["id"]) + ","
-                cur_obj["total"]["label"] += str(anomaly_pt["id"]) + ","
+    for session_id in sorted(sessions_anomalies.keys(), key=int):
+        anomaly_session_status["session"].append(session_id)
+        anomaly_session_status["severe"].append(sessions_anomalies[session_id]["severe"])
+        anomaly_session_status["medium"].append(sessions_anomalies[session_id]["medium"])
+        anomaly_session_status["light"].append(sessions_anomalies[session_id]["light"])
 
-            origin_stats_dict["light"].append(cur_obj["light"])
-            origin_stats_dict["medium"].append(cur_obj["medium"])
-            origin_stats_dict["severe"].append(cur_obj["severe"])
-            origin_stats_dict["total"].append(cur_obj["total"])
-
-        # print(origin_stats_dict)
-        all_origin_stats_dict[origin_type] = origin_stats_dict
-        with open(parentDir + "/databackup/" + outputJsonName, "w") as outFile:
-            json.dump(all_origin_stats_dict, outFile, sort_keys=True, indent=4, ensure_ascii=True)
-    return all_origin_stats_dict
+    return anomaly_session_status
 
 # @descr: Prepare the json data to scatter the # of QoE anomalies over various properties of ISP and networks.
 def get_scatter_origin_anomalies_json():
     logger.info("Running get_scatter_origin_anomalies_json")
-    all_origin_stats_dict = getQoEAnomaliesStats()
-    curfilePath = os.path.abspath(__file__)
-    curDir = os.path.abspath(os.path.join(curfilePath, os.pardir))  # this will return current directory in which python file resides.
-    parentDir = os.path.abspath(os.path.join(curDir, os.pardir))  # this will return parent directory.
-    outputJsonName = "scatter_" + time.strftime("%m%d") + ".json"
-
-    if os.path.exists(parentDir + "/databackup/" + outputJsonName):
-        with open(parentDir + "/databackup/" + outputJsonName) as json_data:
-            scatter_origin_json = json.load(json_data)
-            return scatter_origin_json
+    # all_origin_stats_dict = getQoEAnomaliesStats()
+    all_origin_stats_dict = getAnomaliesPerSessions()
 
     scatter_origin_json = {}
     for origin_type in all_origin_stats_dict.keys():
@@ -603,8 +566,5 @@ def get_scatter_origin_anomalies_json():
                         continue
             else:
                 continue
-
-    with open(parentDir + "/databackup/" + outputJsonName, "w") as outFile:
-        json.dump(scatter_origin_json, outFile, sort_keys=True, indent=4, ensure_ascii=True)
 
     return scatter_origin_json

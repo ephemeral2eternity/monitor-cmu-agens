@@ -7,9 +7,36 @@
 <body>
 <h1>Total anomalies : {{ anomalies.count }} </h1>
 <ul>
-    <li>Severe anomalies: {{ severe }}</li>
-    <li>Medium anomalies: {{ medium }}</li>
-    <li>Light anomalies: {{ light }}</li>
+    <li>Severe anomalies: {{ severe.count }}</li>
+    <li>Anomalous sessions with severe anomalies: {{ severe_sessions|length }}
+        <ul>
+            <li>
+            {% for session in severe_sessions %}
+                <a href="/get_session?id={{ session.id }}">{{ session }}</a>,
+            {% endfor %}
+            </li>
+        </ul>
+    </li>
+    <li>Medium anomalies: {{ medium.count }}</li>
+    <li>Anomalous sessions with medium anomalies: {{ medium_sessions|length }}
+        <ul>
+            <li>
+            {% for session in medium_sessions %}
+                <a href="/get_session?id={{ session.id }}">{{ session }}</a>,
+            {% endfor %}
+            </li>
+        </ul>
+    </li>
+    <li>Light anomalies: {{ light.count }}</li>
+    <li>Anomalous sessions with anomalies: {{ light_sessions|length }}
+        <ul>
+            <li>
+            {% for session in light_sessions %}
+                <a href="/get_session?id={{ session.id }}">{{ session }}</a>,
+            {% endfor %}
+            </li>
+        </ul>
+    </li>
 </ul>
 {% if anomalies %}
 <table style="width:100%">

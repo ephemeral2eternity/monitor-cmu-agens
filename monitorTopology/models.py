@@ -308,6 +308,9 @@ class Anomaly(models.Model):
     def get_ts(self):
         return str(self.timestamp.timestamp())
 
+    class Meta:
+        ordering = ['-timestamp']
+
 class Cause(models.Model):
     obj_lid = models.IntegerField()
     obj_mid = models.IntegerField(default=-1)

@@ -13,7 +13,7 @@ from monitorTopology.models import *
 from monitorTopology.monitor_utils import *
 from monitorTopology.data_utils import *
 from monitorTopology.lat_utils import *
-from monitorTopology.comm_utils import *
+from monitorTopology.anomalies_utils import *
 
 # Create your views here.
 # Show detailed info of all clients connecting to this agent.
@@ -741,11 +741,6 @@ def drawStatNetLat(request):
     return HttpResponse(template.render({}, request))
 
 # @description Draw bar graphs for network latencies
-def statQoEAnomaliesJson(request):
-    qoeAnomaliesStatsJson = getQoEAnomaliesStats()
-    return JsonResponse(qoeAnomaliesStatsJson, safe=True)
-
-# @description Draw bar graphs for network latencies
 def drawStatQoEAnomalies(request):
     template = loader.get_template("monitorTopology/anomalyStats.html")
     return HttpResponse(template.render({}, request))
@@ -768,11 +763,16 @@ def scatterNetworks(request):
 # @description Show details of all anomalies in table
 def showAllAnomalies(request):
     anomalies = Anomaly.objects.all()
-    severe_cnt = anomalies.filter(type="severe").count()
-    medium_cnt = anomalies.filter(type="medium").count()
-    light_cnt = anomalies.filter(type="light").count()
+    severe_anomalies = anomalies.filter(type="severe")
+    severe_sessions = get_anomalous_sesssions(severe_anomalies)
+    medium_anomalies = anomalies.filter(type="medium")
+    medium_sessions = get_anomalous_sesssions(medium_anomalies)
+    light_anomalies = anomalies.filter(type="light")
+    light_sessions = get_anomalous_sesssions(light_anomalies)
     template = loader.get_template("monitorTopology/anomalies.html")
-    return HttpResponse(template.render({'anomalies': anomalies, "severe":severe_cnt, "medium":medium_cnt, "light":light_cnt}, request))
+    return HttpResponse(template.render({'anomalies': anomalies,
+                                         "severe":severe_anomalies, "medium":medium_anomalies, "light":light_anomalies,
+                                         "severe_sessions":severe_sessions, "medium_sessions":medium_sessions, "light_sessions":light_sessions}, request))
 
 # @description Delete all anomalies in the database
 def delAllAnomalies(request):
@@ -807,3 +807,7 @@ def getAnomaly(request):
 def cacheAllAnomalies(request):
     cache_all_qoe_anomalies()
     return showAllAnomalies(request)
+
+def getAnomaliesPerSessionsJson(request):
+    anomalies_per_sessions = getAnomaliesPerSessions()
+    return JsonResponse(anomalies_per_sessions, safe=False)

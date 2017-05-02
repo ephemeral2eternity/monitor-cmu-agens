@@ -89,6 +89,14 @@ def cache_all_qoe_anomalies():
             print(anomaly_dict)
             continue
 
+def get_anomalous_sesssions(anomalies):
+    anomalous_sessions = []
+    for anomaly in anomalies.all():
+        if anomaly.session not in anomalous_sessions:
+            anomalous_sessions.append(anomaly.session)
+
+    return anomalous_sessions
+
 if __name__ == '__main__':
     #locator_ip = "13.93.223.198"
     #qoe_anomalies = get_qoe_anomalies(locator_ip)
