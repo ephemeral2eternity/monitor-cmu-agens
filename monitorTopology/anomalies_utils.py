@@ -145,13 +145,23 @@ def getAnomaliesPerISPs():
         for origin in anomaly.origins.all():
             if origin.type == "server":
                 srv = origin.get_cause_obj()
+                if srv.node.ip not in node_anomalies["server"].keys():
+                    node_anomalies["server"][srv.node.ip] = []
+                node_anomalies["server"][srv.node.ip].append({"type": anomaly.type, "count":origin.count, "id":anomaly.id})
 
             if origin.type == "device":
                 client = anomaly.session.client
+                if client.node.ip not in node_anomalies["client"].keys():
+                    node_anomalies["client"][client.node.ip] = []
+                node_anomalies["client"][client.node.ip].append(
+                    {"type": anomaly.type, "count": origin.count, "id": anomaly.id})
 
             if origin.type == "network":
                 net = origin.get_cause_obj()
-                # if
+                if net.id not in net_anomalies[net.isp.type].keys():
+                    net_anomalies[net.isp.type][net.id] = []
+                net_anomalies[net.isp.type][net.id].append({"type": anomaly.type, "count":origin.count, "id":anomaly.id})
+
 
     anomalies_per_isps = {}
     return anomalies_per_isps
