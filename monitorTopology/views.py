@@ -811,3 +811,7 @@ def cacheAllAnomalies(request):
 def getAnomaliesPerSessionsJson(request):
     anomalies_per_sessions = getAnomaliesPerSessions()
     return JsonResponse(anomalies_per_sessions, safe=False)
+
+def getAnomaliesPerOriginJson(request):
+    anomalies_per_origins = getAnomaliesPerOrigins()
+    return JsonResponse(anomalies_per_origins, safe=False)

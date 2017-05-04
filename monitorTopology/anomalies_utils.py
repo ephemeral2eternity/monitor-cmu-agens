@@ -120,8 +120,8 @@ def getAnomaliesPerSessions():
 
     return anomaly_session_status
 
-# @descr: Get the anomaly counts per ISP in different types
-def getAnomaliesPerISPs():
+# @descr: Get the anomaly counts per ISP, Networks, Nodes in different types
+def getAnomaliesPerOrigins():
     anomalies = Anomaly.objects.all()
 
     isp_anomalies = {
@@ -162,9 +162,12 @@ def getAnomaliesPerISPs():
                     net_anomalies[net.isp.type][net.id] = []
                 net_anomalies[net.isp.type][net.id].append({"type": anomaly.type, "count":origin.count, "id":anomaly.id})
 
+                if net.isp.ASNumber not in isp_anomalies[net.isp.type].keys():
+                    isp_anomalies[net.isp.type][net.isp.ASNumber] = []
+                isp_anomalies[net.isp.type][net.isp.ASNumber].append({"type": anomaly.type, "count":origin.count, "id":anomaly.id})
 
-    anomalies_per_isps = {}
-    return anomalies_per_isps
+    anomalies_per_origins = {"isps":isp_anomalies, "networks":net_anomalies, "nodes":node_anomalies}
+    return anomalies_per_origins
 
 
 if __name__ == '__main__':
