@@ -102,23 +102,26 @@ def get_anomalous_sesssions(anomalies):
 def getAnomaliesPerSessions():
     anomalies = Anomaly.objects.all()
 
-    sessions_anomalies = {}
+    session_anomalies = {}
     for anomaly in anomalies:
         session_id = anomaly.session.id
-        if session_id not in sessions_anomalies.keys():
-            sessions_anomalies[session_id] = {"light":0, "medium":0, "severe":0}
+        if session_id not in session_anomalies.keys():
+            session_anomalies[session_id] = {"light":[], "medium":[], "severe":[]}
 
-        sessions_anomalies[session_id][anomaly.type] += 1
+        session_anomalies[session_id][anomaly.type].append(anomaly.id)
 
-    anomaly_session_status = {"session":[], "severe":[], "medium":[], "light":[]}
+    return session_anomalies
 
-    for session_id in sorted(sessions_anomalies.keys(), key=int):
-        anomaly_session_status["session"].append(session_id)
-        anomaly_session_status["severe"].append(sessions_anomalies[session_id]["severe"])
-        anomaly_session_status["medium"].append(sessions_anomalies[session_id]["medium"])
-        anomaly_session_status["light"].append(sessions_anomalies[session_id]["light"])
+def getAnomaliesCntPerSessions(session_anomalies):
+    anomaly_cnt_per_session = {"session":[], "severe":[], "medium":[], "light":[]}
 
-    return anomaly_session_status
+    for session_id in sorted(session_anomalies.keys(), key=int):
+        anomaly_cnt_per_session["session"].append(session_id)
+        anomaly_cnt_per_session["severe"].append(len(session_anomalies[session_id]["severe"]))
+        anomaly_cnt_per_session["medium"].append(len(session_anomalies[session_id]["medium"]))
+        anomaly_cnt_per_session["light"].append(len(session_anomalies[session_id]["light"]))
+
+    return anomaly_cnt_per_session
 
 # @descr: Get the anomaly counts per ISP, Networks, Nodes in different types
 def getAnomaliesPerOrigins():
@@ -151,9 +154,9 @@ def getAnomaliesPerOrigins():
 
             if origin.type == "device":
                 client = anomaly.session.client
-                if client.node.ip not in node_anomalies["client"].keys():
-                    node_anomalies["client"][client.node.ip] = []
-                node_anomalies["client"][client.node.ip].append(
+                if client.ip not in node_anomalies["client"].keys():
+                    node_anomalies["client"][client.ip] = []
+                node_anomalies["client"][client.ip].append(
                     {"type": anomaly.type, "count": origin.count, "id": anomaly.id})
 
             if origin.type == "network":

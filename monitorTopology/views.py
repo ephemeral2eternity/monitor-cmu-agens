@@ -14,6 +14,7 @@ from monitorTopology.monitor_utils import *
 from monitorTopology.data_utils import *
 from monitorTopology.lat_utils import *
 from monitorTopology.anomalies_utils import *
+from monitorTopology.dump_utils import *
 
 # Create your views here.
 # Show detailed info of all clients connecting to this agent.
@@ -815,3 +816,7 @@ def getAnomaliesPerSessionsJson(request):
 def getAnomaliesPerOriginJson(request):
     anomalies_per_origins = getAnomaliesPerOrigins()
     return JsonResponse(anomalies_per_origins, safe=False)
+
+def getSessionsJson(request):
+    sessions_json = get_session_json()
+    return JsonResponse(sessions_json, safe=False, json_dumps_params={'indent': 2})

@@ -27,6 +27,7 @@ urlpatterns = [
     url(r'^get_isp_map', views.getISPMap, name='getISPMap'),
     url(r'^get_isp', views.getISP, name='getISP'),
     url(r'^del_isp', views.deleteISP, name='deleteISP'),
+    url(r'^get_session_json', views.getSessionsJson, name='getSessionsJson'),
     url(r'^get_session', views.getSession, name='getSession'),
     url(r'^get_node', views.getNode, name='getNode'),
     url(r'^get_latency_json', views.getLatencyJson, name='getLinkLatencyJson'),
