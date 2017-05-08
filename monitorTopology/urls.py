@@ -51,6 +51,7 @@ urlpatterns = [
     url(r'^get_anomaly', views.getAnomaly, name='getAnomaly'),
     url(r'^get_anomalies_per_session_json', views.getAnomaliesPerSessionsJson, name='statQoEAnomaliesJson'),
     url(r'^get_anomalies_per_origin_json', views.getAnomaliesPerOriginJson, name='statQoEAnomaliesJson'),
+    url(r'^dump_all_anomalies_json', views.dumpAllAnomaliesJson, name='dumpAllAnomaliesJson'),
     url(r'^scatter_origin_anomalies_json', views.scatterOriginAnomalisJson, name='scatterOriginAnomalisJson'),
     url(r'^scatter_isps', views.scatterISP, name='scatterISP'),
     url(r'^scatter_networks', views.scatterNetworks, name='scatterNetworks'),

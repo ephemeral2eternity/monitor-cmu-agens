@@ -142,7 +142,10 @@ def getAnomaliesCntPerSessions(session_anomalies):
 
     return anomaly_cnt_per_session
 
-# @descr: Get the anomaly counts per ISP, Networks, Nodes in different types
+#####################################################################################
+## @descr: Get the anomaly counts per ISP, Networks, Nodes in different types
+## @return: session_anomalies ---- Get the anomalies id and type per session.
+#####################################################################################
 def getAnomaliesPerOrigins():
     anomalies = Anomaly.objects.all()
 
@@ -191,6 +194,22 @@ def getAnomaliesPerOrigins():
     anomalies_per_origins = {"isps":isp_anomalies, "networks":net_anomalies, "nodes":node_anomalies}
     return anomalies_per_origins
 
+
+#####################################################################################
+## @return: anomalies_json ---- the json object that contains info for all anomalies
+#####################################################################################
+def dump_all_anomalies_json():
+    anomalies = Anomaly.objects.all()
+    anomalies_json = {}
+    for anomaly in anomalies:
+        anomalies_json[anomaly.id] = {"locator":anomaly.locator, "lid": anomaly.lid, "session_lid": anomaly.session_lid,
+                                      "type":anomaly.type, "timeToDiagnose":float(anomaly.timeToDiagnose), "timestamp":anomaly.timestamp.timestamp(),
+                                      "session_id":anomaly.session.id}
+        origins_list = []
+        for origin in anomaly.origins.all():
+            origins_list.append({"origin_lid":origin.obj_lid, "origin_mid":origin.obj_mid, "type":origin.type, "data":origin.data, "count":float(origin.count)})
+        anomalies_json[anomaly.id]["origins"] = origins_list
+    return anomalies_json
 
 if __name__ == '__main__':
     #locator_ip = "13.93.223.198"

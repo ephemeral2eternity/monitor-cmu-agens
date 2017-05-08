@@ -817,6 +817,12 @@ def getAnomaliesPerOriginJson(request):
     anomalies_per_origins = getAnomaliesPerOrigins()
     return JsonResponse(anomalies_per_origins, safe=False)
 
+def dumpAllAnomaliesJson(request):
+    anomalies_json = dump_all_anomalies_json()
+    response = HttpResponse(json.dumps(anomalies_json, indent=4), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="anomalies.json"'
+    return response
+
 def dumpAllISPsJson(request):
     isps_json = dump_all_isps_json()
     response = HttpResponse(json.dumps(isps_json, indent=4), content_type='application/json')
