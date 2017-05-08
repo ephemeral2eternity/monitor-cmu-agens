@@ -88,7 +88,7 @@ def dump_all_sessions_json():
 def dump_lat_json(lats):
     lats_dict = {}
     for lat in lats.all():
-        lats_dict[lat.timestamp.timestamp()] = lat.latency
+        lats_dict[lat.timestamp.timestamp()] = float(lat.latency)
 
     return lats_dict
 
