@@ -817,6 +817,20 @@ def getAnomaliesPerOriginJson(request):
     anomalies_per_origins = getAnomaliesPerOrigins()
     return JsonResponse(anomalies_per_origins, safe=False)
 
-def getSessionsJson(request):
-    sessions_json = get_session_json()
-    return JsonResponse(sessions_json, safe=False, json_dumps_params={'indent': 2})
+def dumpAllISPsJson(request):
+    isps_json = dump_all_isps_json()
+    response = HttpResponse(json.dumps(isps_json, indent=4), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="isps.json"'
+    return response
+
+def dumpAllSessionsJson(request):
+    sessions_json = dump_all_sessions_json()
+    response = HttpResponse(json.dumps(sessions_json, sort_keys=True, indent=4), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="sessions.json"'
+    return response
+
+def dumpAllNodesJson(request):
+    nodes_json = dump_all_nodes_json()
+    response = HttpResponse(json.dumps(nodes_json, sort_keys=True, indent=4), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="nodes.json"'
+    return response

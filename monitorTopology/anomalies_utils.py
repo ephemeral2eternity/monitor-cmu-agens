@@ -6,6 +6,11 @@ import pytz
 from monitorTopology.azure_agents import *
 from monitorTopology.models import Anomaly, Cause, Session, Network, Server
 
+#####################################################################################
+## @params: locator_ip ---- the ip of the locator to get the anomalies data.
+##          ts ---- the timestamp from which the anomalies to be retrieved
+## @return: nodes_json ---- the json object that contains info for all nodes
+#####################################################################################
 def get_qoe_anomalies(locator_ip, ts=None):
     if ts:
         url = "http://%s/diag/get_all_anomalies_json?ts=%s" % (locator_ip, ts)
@@ -17,7 +22,9 @@ def get_qoe_anomalies(locator_ip, ts=None):
     except:
         return []
 
-## @ Collect all QoE anomalies from all locators
+#####################################################################################
+## @descr: collect QoE anomalies from all locators
+#####################################################################################
 def get_all_qoe_anomalies():
     locators = list_locators("agens", "locator-")
 
@@ -34,7 +41,9 @@ def get_all_qoe_anomalies():
         all_anomalies.extend(qoe_anomalies)
     return all_anomalies
 
-## Cache all data obtained to database
+#####################################################################################
+## @descr: Cache all data obtained to database
+#####################################################################################
 def cache_all_qoe_anomalies():
     all_anomalies = get_all_qoe_anomalies()
     for anomaly_dict in all_anomalies:
@@ -89,6 +98,10 @@ def cache_all_qoe_anomalies():
             print(anomaly_dict)
             continue
 
+#####################################################################################
+## @descr: Get all anomalies session ids
+## @params: anomalies ---- the anomalies given to get the anomalous sessions
+#####################################################################################
 def get_anomalous_sesssions(anomalies):
     anomalous_sessions = []
     for anomaly in anomalies.all():
@@ -97,8 +110,10 @@ def get_anomalous_sesssions(anomalies):
 
     return anomalous_sessions
 
-
-# @descr: Get the anomaly counts per origin type for histogram graphs
+#####################################################################################
+## @descr: Get the anomalies per session id
+## @return: session_anomalies ---- Get the anomalies id and type per session.
+#####################################################################################
 def getAnomaliesPerSessions():
     anomalies = Anomaly.objects.all()
 
@@ -106,12 +121,16 @@ def getAnomaliesPerSessions():
     for anomaly in anomalies:
         session_id = anomaly.session.id
         if session_id not in session_anomalies.keys():
-            session_anomalies[session_id] = {"light":[], "medium":[], "severe":[]}
+            session_anomalies[session_id] = {"severe":[], "medium":[], "light":[]}
 
         session_anomalies[session_id][anomaly.type].append(anomaly.id)
 
     return session_anomalies
 
+#####################################################################################
+## @descr: Get the anomalies per session id
+## @return: session_anomalies ---- Get the anomalies id and type per session.
+#####################################################################################
 def getAnomaliesCntPerSessions(session_anomalies):
     anomaly_cnt_per_session = {"session":[], "severe":[], "medium":[], "light":[]}
 

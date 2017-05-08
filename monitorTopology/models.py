@@ -43,7 +43,7 @@ class Agent(models.Model):
     networks = models.ManyToManyField("Network", blank=True, through="NetProbing")
 
     def __str__(self):
-        return self.agentType + ":" + self.node.name + "@(" + str(self.node.network.latitude) + "," + str(self.node.network.longitude) + ")"
+        return self.agentType + ":" + str(self.node.id)
 
     def get_class_name(self):
         return "agent"
