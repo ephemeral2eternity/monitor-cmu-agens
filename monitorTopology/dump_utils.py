@@ -10,7 +10,7 @@ def dump_all_isps_json():
     isps_dict = {}
     for isp in isps:
         isps_dict[isp.ASNumber] = {"name": isp.name, "as": isp.ASNumber, "type":isp.type}
-        nets_list = []
+        nets = {}
         for net in isp.networks.distinct():
             cur_net_dict = {"latitude":float(net.latitude), "longitude":float(net.longitude), "city":net.city, "region":net.region, "country":net.country,
                             "nodes":[], "related_sessions":[], "latencies":{}}
@@ -19,8 +19,8 @@ def dump_all_isps_json():
             for session in net.related_sessions.distinct():
                 cur_net_dict["related_sessions"].append(session.id)
 
-            nets_list.append(cur_net_dict)
-        isps_dict[isp.ASNumber]["networks"] = nets_list
+            nets[net.id] = cur_net_dict
+        isps_dict[isp.ASNumber]["networks"] = nets
     return isps_dict
 
 #####################################################################################
