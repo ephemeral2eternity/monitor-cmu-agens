@@ -19,15 +19,6 @@ def dump_all_isps_json():
             for session in net.related_sessions.distinct():
                 cur_net_dict["related_sessions"].append(session.id)
 
-            azure_probing_lats = net.latencies.filter(agent__agentType="azure")
-            planetlab_probing_lats = net.latencies.filter(agent__agentType="planetlab")
-
-            for agent in net.agents.distinct():
-                if agent.agentType == "azure":
-                    cur_net_dict["latencies"][agent.__str__()] = dump_lat_json(azure_probing_lats)
-                else:
-                    cur_net_dict["latencies"][agent.__str__()] = dump_lat_json(planetlab_probing_lats)
-
             nets_list.append(cur_net_dict)
         isps_dict[isp.ASNumber]["networks"] = nets_list
     return isps_dict
@@ -71,13 +62,6 @@ def dump_all_sessions_json():
 
         sessions_json[session.id]["hops"] = hops_dict
         sessions_json[session.id]["links"] = links_dict
-
-        server = Server.objects.get(node=session.server)
-        session_lats = server.latencies.filter(agent__node=session.client)
-
-        lats_dict = dump_lat_json(session_lats)
-
-        sessions_json[session.id]["latencies"] = lats_dict
 
     return sessions_json
 

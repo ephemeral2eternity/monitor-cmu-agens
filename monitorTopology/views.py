@@ -296,6 +296,36 @@ def getLatencyJson(request):
     else:
         return JsonResponse({})
 
+def dumpLatencyJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('id' in request_dict.keys()) and ('type' in request_dict.keys()):
+        obj_typ = request_dict['type'][0]
+        obj_id = request_dict['id'][0]
+
+        ## The obj_typ can be "link", "network" and "server"
+        if obj_typ == "link":
+            link = Edge.objects.get(id=obj_id)
+            latencies = link.latencies.all()
+            lats_json = dump_lat_json(latencies)
+        elif obj_typ == "session":
+            session = Session.objects.get(id=obj_id)
+            server = Server.objects.get(node=session.server)
+            latencies = server.latencies.filter(agent__node=session.client)
+            lats_json = dump_lat_json(latencies)
+        else:
+            net = Network.objects.get(id=obj_id)
+            azure_latencies = net.latencies.filter(agent__agentType="azure")
+            planetlab_latencies = net.latencies.filter(agent__agentType="planetlab")
+            lats_json = {"azure":dump_lat_json(azure_latencies), "planetlab":dump_lat_json(planetlab_latencies)}
+
+        response = HttpResponse(json.dumps(lats_json, indent=4), content_type='application/json')
+        fileName = obj_typ + "_" + str(obj_id) + "_lats.json"
+        response['Content-Disposition'] = 'attachment; filename=%s' % fileName
+        return response
+
+
 # @description Get the count of hops for each session going through a given network denoted by id.
 # @description Get network size data for all networks.
 def getNetSizeJson(request):
