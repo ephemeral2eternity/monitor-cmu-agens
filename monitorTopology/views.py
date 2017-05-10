@@ -322,7 +322,7 @@ def dumpLatencyJson(request):
 
         response = HttpResponse(json.dumps(lats_json, indent=4), content_type='application/json')
         fileName = obj_typ + "_" + str(obj_id) + "_lats.json"
-        response['Content-Disposition'] = 'attachment; filename=%s' % fileName
+        response['Content-Disposition'] = 'attachment; filename="%s"' % fileName
         return response
 
 
