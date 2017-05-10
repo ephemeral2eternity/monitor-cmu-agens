@@ -870,3 +870,9 @@ def dumpAllNodesJson(request):
     response = HttpResponse(json.dumps(nodes_json, sort_keys=True, indent=4), content_type='application/json')
     response['Content-Disposition'] = 'attachment; filename="nodes.json"'
     return response
+
+def dumpAllLinksJson(request):
+    links_json = dump_all_links_json()
+    response = HttpResponse(json.dumps(links_json, sort_keys=True, indent=4), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="links.json"'
+    return response

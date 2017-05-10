@@ -66,6 +66,19 @@ def dump_all_sessions_json():
     return sessions_json
 
 #####################################################################################
+## @return: links_json ---- the json object that contains info for all links
+#####################################################################################
+def dump_all_links_json():
+    links = Edge.objects.all()
+
+    links_json = {}
+    for link in links:
+        links_json[link.id] = {"src":link.src.id, "dst":link.dst.id, "isIntra":link.isIntra, "srcISP":link.src.network.isp.ASNumber, "dstISP":link.dst.network.isp.ASNumber}
+
+    return links_json
+
+
+#####################################################################################
 ## @params: lats ---- the query set of latency objects
 ## @return: lats_dict ---- the json object of latencies
 #####################################################################################

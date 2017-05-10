@@ -35,6 +35,7 @@ urlpatterns = [
     url(r'^get_latency_json', views.getLatencyJson, name='getLatencyJson'),
     url(r'^dump_latency_json', views.dumpLatencyJson, name='dumpLatencyJson'),
     url(r'^get_link', views.getLink, name='getLink'),
+    url(r'^dump_all_links_json', views.dumpAllLinksJson, name='dumpAllLinksJson'),
     url(r'^get_server', views.getServer, name='getServer'),
     url(r'^get_net_size_json$', views.getNetSizeJson, name='getNetSizeJson'),
     url(r'^get_network$', views.getNetwork, name='getNetwork'),
