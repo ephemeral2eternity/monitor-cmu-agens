@@ -332,3 +332,16 @@ class Cause(models.Model):
         else:
             obj = self.data
         return obj
+
+class QoE(models.Model):
+    session_lid = models.IntegerField()
+    session_id = models.IntegerField()
+    locator = models.CharField(max_length=100)
+    qoe = models.DecimalField(max_digits=5, decimal_places=4)
+    timestamp = models.DateTimeField()
+
+    def __str__(self):
+        return str(self.session_id) + ", " + str(self.qoe)
+
+    class Meta:
+        ordering = ('timestamp', )

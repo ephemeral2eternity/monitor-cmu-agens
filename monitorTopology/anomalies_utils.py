@@ -4,7 +4,7 @@ import json
 import sys
 import pytz
 from monitorTopology.azure_agents import *
-from monitorTopology.models import Anomaly, Cause, Session, Network, Server
+from monitorTopology.models import Anomaly, Cause, Session, Network, Server, QoE
 
 #####################################################################################
 ## @params: locator_ip ---- the ip of the locator to get the anomalies data.
@@ -16,6 +16,22 @@ def get_qoe_anomalies(locator_ip, ts=None):
         url = "http://%s/diag/get_all_anomalies_json?ts=%s" % (locator_ip, ts)
     else:
         url = "http://%s/diag/get_all_anomalies_json" % locator_ip
+    try:
+        rsp = requests.get(url)
+        return rsp.json()
+    except:
+        return []
+
+#####################################################################################
+## @params: locator_ip ---- the ip of the locator to get the QoE data.
+##          ts ---- the timestamp from which the QoE for all sessions to be retrieved
+## @return: the list include all qoe updates from all session
+#####################################################################################
+def get_qoes(locator_ip, ts=None):
+    if ts:
+        url = "http://%s/diag/get_all_qoes_json?ts=%s" % (locator_ip, ts)
+    else:
+        url = "http://%s/diag/get_all_qoes_json" % locator_ip
     try:
         rsp = requests.get(url)
         return rsp.json()
@@ -40,6 +56,25 @@ def get_all_qoe_anomalies():
             qoe_anomalies = get_qoe_anomalies(locator_ip)
         all_anomalies.extend(qoe_anomalies)
     return all_anomalies
+
+#####################################################################################
+## @descr: collect QoE updates from all locators
+#####################################################################################
+def get_all_qoes():
+    locators = list_locators("agens", "locator-")
+
+    all_qoes = []
+    for locator in locators:
+        locator_ip = locator["ip"]
+        locator_name = locator["name"]
+        print("Getting QoE updates from locator: " + locator_name)
+        if QoE.objects.filter(locator=locator_name).count() > 0:
+            ts = QoE.objects.filter(locator=locator_name).latest(field_name="timestamp").timestamp.timestamp()
+            qoes = get_qoes(locator_ip, ts)
+        else:
+            qoes = get_qoes(locator_ip)
+        all_qoes.extend(qoes)
+    return all_qoes
 
 #####################################################################################
 ## @descr: Cache all data obtained to database
@@ -97,6 +132,29 @@ def cache_all_qoe_anomalies():
             print("Unexpected error:", sys.exc_info()[0])
             print(anomaly_dict)
             continue
+
+#####################################################################################
+## @descr: Cache all sessions' QoE valuaes to database
+#####################################################################################
+def cache_all_qoes():
+    all_qoes = get_all_qoes()
+    for session_qoe in all_qoes:
+        client_ip = session_qoe["client"]
+        server_ip = session_qoe["server"]
+        session_lid = int(session_qoe["lid"])
+        locator = session_qoe["locator"]
+        try:
+            session = Session.objects.get(client__ip=client_ip, server__ip=server_ip)
+            session_id = session.id
+        except:
+            session_id = -1
+        qoes = session_qoe["qoes"]
+
+        for ts, qoe in qoes.items():
+            dtfield = datetime.datetime.utcfromtimestamp(float(ts)).replace(tzinfo=pytz.utc)
+            qoe_obj = QoE(session_lid=session_lid, session_id=session_id, locator=locator, qoe=qoe,
+                          timestamp=dtfield)
+            qoe_obj.save()
 
 #####################################################################################
 ## @descr: Get all anomalies session ids

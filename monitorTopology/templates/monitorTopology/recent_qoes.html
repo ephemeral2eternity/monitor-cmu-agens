@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recent QoEs</title>
+</head>
+<body>
+<div>
+{% if qoes %}
+    <table style="width:100%">
+        <tr>
+            <td>Locator</td>
+            <td>Session ID on Locator</td>
+            <td>Session ID on Monitor</td>
+            <td>QoE</td>
+            <td>Timestamp</td>
+        </tr>
+        {% for qoe in qoes %}
+        <tr>
+            <td> {{ qoe.locator }} </td>
+            <td><a href="http://{{ qoe.locator }}.cmu-agens.com/diag/get_session?id={{ qoe.session_lid }}"> {{ qoe.session_lid }} </a></td>
+            <td><a href="/get_session?id={{ qoe.session_id }}"> {{ qoe.session_id }} </a></td>
+            <td> {{ qoe.qoe }} </td>
+            <td> {{ qoe.timestamp }} </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No QoE have been cached. Please run <a href="/cache_all_qoes">cache all QoEs</a>!</p>
+{% endif %}
+</div>
+</body>
+</html>

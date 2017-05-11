@@ -64,6 +64,41 @@ def showAgents(request):
     template = loader.get_template('monitorTopology/agents.html')
     return HttpResponse(template.render({'agents':agents}, request))
 
+def getSessionJson(request):
+    url = request.get_full_path()
+    params = url.split('?')[1]
+    request_dict = urllib.parse.parse_qs(params)
+    if ('client' in request_dict.keys()) and ('server' in request_dict.keys()):
+        clientIP = request_dict['client'][0]
+        serverIP = request_dict['server'][0]
+        try:
+            session = Session.objects.get(client__ip=clientIP, server__ip=serverIP)
+        except:
+            return JsonResponse({})
+    elif ('id' in request_dict.keys()):
+        try:
+            session_id = int(request_dict['id'][0])
+            session = Session.objects.get(id=session_id)
+        except:
+            return JsonResponse({})
+    else:
+        return JsonResponse({})
+
+    session_json = {"id": session.id, "client": session.client.id, "server": session.server.id}
+    nodes = session.route.distinct()
+    nodes_list = []
+    for node in nodes:
+        nodes_list.append(node.id)
+
+    nets = session.sub_networks.distinct()
+    nets_list = []
+    for net in nets:
+        nets_list.append(net.id)
+
+    session_json["nodes"] = nodes_list
+    session_json["networks"] = nets_list
+    return JsonResponse(session_json, safe=False)
+
 # @description Get the details of one session denoted by the session id
 # @called by: showSessions.
 def getSession(request):
@@ -834,6 +869,15 @@ def getAnomaly(request):
                                              'link_ids_str':link_ids_str, 'net_ids_str': net_ids_str},request))
     else:
         return HttpResponse("Please specify anomaly id when calling http://monitor/get_anomaly?id=anomaly_id")
+
+def showQoEs(request):
+    qoes = QoE.objects.all().order_by('-timestamp')[:100]
+    template = loader.get_template("monitorTopology/recent_qoes.html")
+    return HttpResponse(template.render({'qoes': qoes}, request))
+
+def cacheAllQoEs(request):
+    cache_all_qoes()
+    return HttpResponse("Successfully cache all QoE values locally!")
 
 def cacheAllAnomalies(request):
     cache_all_qoe_anomalies()
