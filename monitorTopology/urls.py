@@ -42,6 +42,7 @@ urlpatterns = [
     url(r'^get_network$', views.getNetwork, name='getNetwork'),
     url(r'^edit_network', views.editNetwork, name='editNetwork'),
     url(r'^get_network_json$', views.getNetworkJson, name='getNetworkJson'),
+    url(r'^dump_all_networks_json', views.dumpAllNetworksJson, name='dumpAllNetworksJson'),
     url(r'^get_router_graph_json', views.getRouterGraphJson, name='getRouterGraphJson'),
     url(r'^get_router_graph', views.getRouterGraph, name='getRouterGraph'),
     url(r'^get_net_graph_json', views.getNetworkGraphJson, name='getNetworkGraphJson'),

@@ -13,7 +13,7 @@ def dump_all_isps_json():
         nets = {}
         for net in isp.networks.distinct():
             cur_net_dict = {"latitude":float(net.latitude), "longitude":float(net.longitude), "city":net.city, "region":net.region, "country":net.country,
-                            "nodes":[], "related_sessions":[], "latencies":{}}
+                            "nodes":[], "related_sessions":[]}
             for node in net.nodes.distinct():
                 cur_net_dict["nodes"].append(node.id)
             for session in net.related_sessions.distinct():
@@ -22,6 +22,24 @@ def dump_all_isps_json():
             nets[net.id] = cur_net_dict
         isps_dict[isp.ASNumber]["networks"] = nets
     return isps_dict
+
+#####################################################################################
+## @return: networks_dict ---- the json object that contains info for all networks
+#####################################################################################
+def dump_all_networks_json():
+    nets = Network.objects.all()
+
+    nets_dict = {}
+    for net in nets:
+        nets_dict[net.id] = {"name": net.isp.name, "as": net.isp.ASNumber, "type":net.isp.type, "latitude": float(net.latitude), "longitude":float(net.longitude),
+                             "nodes":[], "related_sessions":[]}
+
+        for node in net.nodes.distinct():
+            nets_dict[net.id]["nodes"].append(node.id)
+        for session in net.related_sessions.distinct():
+            nets_dict[net.id]["related_sessions"].append(session.id)
+
+    return nets_dict
 
 #####################################################################################
 ## @return: nodes_json ---- the json object that contains info for all nodes

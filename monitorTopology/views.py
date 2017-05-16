@@ -903,6 +903,12 @@ def dumpAllISPsJson(request):
     response['Content-Disposition'] = 'attachment; filename="isps.json"'
     return response
 
+def dumpAllNetworksJson(request):
+    nets_json = dump_all_networks_json()
+    response = HttpResponse(json.dumps(nets_json, indent=4), content_type='application/json')
+    response['Content-Disposition'] = 'attachment; filename="networks.json"'
+    return response
+
 def dumpAllSessionsJson(request):
     sessions_json = dump_all_sessions_json()
     response = HttpResponse(json.dumps(sessions_json, sort_keys=True, indent=4), content_type='application/json')
