@@ -68,7 +68,10 @@ def list_locators(rg_name, prefix):
     for vm in vms:
         vm_name = vm.name
         if prefix in vm_name:
-            vm_ip = network_client.public_ip_addresses.get(rg_name, vm_name).ip_address
+            try:
+                  vm_ip = network_client.public_ip_addresses.get(rg_name, vm_name).ip_address
+            except:
+                  vm_ip = network_client.public_ip_addresses.get(rg_name, vm_name+"-ip").ip_address
             vm_location = vm.location
             print(vm_name, vm_ip, vm_location)
             cur_agent = {"name" : vm_name, "ip" : vm_ip, "location" : vm_location}
@@ -78,7 +81,7 @@ def list_locators(rg_name, prefix):
     return agents
 
 if __name__ == '__main__':
-    agents = list_azure_agents("monitoring", "agent-")
-    print(agents)
+    # agents = list_azure_agents("monitoring", "agent-")
+    # print(agents)
     locators = list_locators("agens", "locator-")
     print(locators)
