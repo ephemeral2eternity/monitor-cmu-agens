@@ -95,8 +95,14 @@ def getSessionJson(request):
     for net in nets:
         nets_list.append(net.id)
 
+    links_list = []
+    links = Edge.objects.filter(Q(src__in=session.route.distinct())&Q(dst__in=session.route.distinct())).distinct()
+    for link in links:
+        links_list.append(link.id)
+
     session_json["nodes"] = nodes_list
     session_json["networks"] = nets_list
+    session_json["links"] = links_list
     rsp = JsonResponse(session_json, safe=False)
     rsp['Access-Control-Allow-Origin'] = '*'
     return rsp

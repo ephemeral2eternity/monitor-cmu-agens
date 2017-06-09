@@ -162,7 +162,6 @@ function drawStatus(obj_type, obj_ids_str, anomaly_id) {
         timeline.setOptions(options);
         timeline.setGroups(groups);
         timeline.setItems(items);
-
     });
 }
 
