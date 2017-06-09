@@ -97,7 +97,9 @@ def getSessionJson(request):
 
     session_json["nodes"] = nodes_list
     session_json["networks"] = nets_list
-    return JsonResponse(session_json, safe=False)
+    rsp = JsonResponse(session_json, safe=False)
+    rsp['Access-Control-Allow-Origin'] = '*'
+    return rsp
 
 # @description Get the details of one session denoted by the session id
 # @called by: showSessions.
@@ -327,7 +329,9 @@ def getLatencyJson(request):
             start_ts = end_ts - datetime.timedelta(minutes=5)
         latencies_obj = {"data": latencies, "start": start_ts, "end": end_ts}
 
-        return JsonResponse(latencies_obj)
+        rsp = JsonResponse(latencies_obj)
+        rsp['Access-Control-Allow-Origin'] = '*'
+        return rsp
     else:
         return JsonResponse({})
 
